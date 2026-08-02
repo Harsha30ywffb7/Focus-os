@@ -1,6 +1,8 @@
 import { sql, testConnection } from './db';
+import { initDbIfNotExists } from './init-db';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { createServer } from 'http';
 
 const PORT = parseInt(process.env.PORT || '3001');
 
@@ -21,41 +23,39 @@ function jsonResponse(data: any, status = 200) {
   });
 }
 
-// Start Bun Native HTTP Server
-const server = Bun.serve({
-  port: PORT,
-  async fetch(req) {
-    const url = new URL(req.url);
-    const method = req.method;
+// Universal Request Handler
+async function handleRequest(req: Request): Promise<Response> {
+  const url = new URL(req.url);
+  const method = req.method;
 
-    // Handle Preflight OPTIONS
-    if (method === 'OPTIONS') {
-      return new Response(null, { headers: corsHeaders });
+  // Handle Preflight OPTIONS
+  if (method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    // 1. HEALTH CHECK & DB CONNECTION STATUS
+    if (url.pathname === '/api/health' && method === 'GET') {
+      const isConnected = await testConnection();
+      return jsonResponse({
+        status: 'online',
+        server: typeof Bun !== 'undefined' ? 'Bun Native HTTP Server' : 'Node HTTP Server',
+        databaseConnected: isConnected,
+        timestamp: new Date().toISOString()
+      });
     }
 
-    try {
-      // 1. HEALTH CHECK & DB CONNECTION STATUS
-      if (url.pathname === '/api/health' && method === 'GET') {
-        const isConnected = await testConnection();
-        return jsonResponse({
-          status: 'online',
-          server: 'Bun HTTP Native Server',
-          databaseConnected: isConnected,
-          timestamp: new Date().toISOString()
-        });
+    // 2. INIT DATABASE SCHEMAS & RELATIONS
+    if (url.pathname === '/api/db/init' && method === 'POST') {
+      try {
+        const schemaPath = join(process.cwd(), 'db/schema.sql');
+        const schemaSql = readFileSync(schemaPath, 'utf8');
+        await sql.unsafe(schemaSql);
+        return jsonResponse({ message: 'Database schemas and relations initialized successfully!' });
+      } catch (err: any) {
+        return jsonResponse({ error: 'Failed to initialize DB schemas', details: err.message }, 500);
       }
-
-      // 2. INIT DATABASE SCHEMAS & RELATIONS
-      if (url.pathname === '/api/db/init' && method === 'POST') {
-        try {
-          const schemaPath = join(import.meta.dir, '../db/schema.sql');
-          const schemaSql = readFileSync(schemaPath, 'utf8');
-          await sql.unsafe(schemaSql);
-          return jsonResponse({ message: 'Database schemas and relations initialized successfully!' });
-        } catch (err: any) {
-          return jsonResponse({ error: 'Failed to initialize DB schemas', details: err.message }, 500);
-        }
-      }
+    }
 
       // 3. FETCH FULL INITIAL STATE FROM POSTGRESQL (State Hydration)
       if (url.pathname === '/api/state' && method === 'GET') {
@@ -372,8 +372,55 @@ const server = Bun.serve({
     } catch (error: any) {
       return jsonResponse({ error: 'Server Error', details: error.message }, 500);
     }
-  },
-});
+}
 
-console.log(`🚀 FocusOS Bun Native Backend running at http://localhost:${server.port}`);
-testConnection();
+// Server Startup: Native Bun or Node.js HTTP fallback
+if (typeof Bun !== 'undefined') {
+  const server = Bun.serve({
+    port: PORT,
+    async fetch(req) {
+      return handleRequest(req);
+    }
+  });
+  console.log(`🚀 FocusOS Bun Backend running at http://localhost:${server.port}`);
+  testConnection().then(() => initDbIfNotExists());
+} else {
+  // Node.js HTTP fallback for Render / Node.js runtime environments
+  const server = createServer(async (req, res) => {
+    try {
+      const fullUrl = `http://${req.headers.host || 'localhost'}${req.url}`;
+      let body: any = null;
+      if (['POST', 'PUT', 'PATCH'].includes(req.method || '')) {
+        const buffers: Uint8Array[] = [];
+        for await (const chunk of req) {
+          buffers.push(chunk);
+        }
+        body = Buffer.concat(buffers).toString();
+      }
+
+      const webReq = new Request(fullUrl, {
+        method: req.method,
+        headers: req.headers as any,
+        body: body ? body : undefined
+      });
+
+      const webRes = await handleRequest(webReq);
+
+      res.statusCode = webRes.status;
+      webRes.headers.forEach((val, key) => {
+        res.setHeader(key, val);
+      });
+
+      const resBody = await webRes.text();
+      res.end(resBody);
+    } catch (e: any) {
+      res.statusCode = 500;
+      res.end(JSON.stringify({ error: 'Node Server Error', details: e.message }));
+    }
+  });
+
+  server.listen(PORT, () => {
+    console.log(`🚀 FocusOS Node Backend running at http://localhost:${PORT}`);
+    testConnection().then(() => initDbIfNotExists());
+  });
+}
