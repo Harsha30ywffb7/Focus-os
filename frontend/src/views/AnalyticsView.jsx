@@ -10,10 +10,14 @@ import {
   Calendar, 
   Sparkles,
   CheckCircle2,
+  Circle,
   Target,
   Clock,
   Plus,
-  Trash2
+  Trash2,
+  AlertTriangle,
+  X,
+  Info
 } from 'lucide-react';
 
 export const AnalyticsView = () => {
@@ -23,6 +27,7 @@ export const AnalyticsView = () => {
   const [newCategory, setNewCategory] = useState('Career');
   const [newNote, setNewNote] = useState('');
   const [newDate, setNewDate] = useState(new Date().toISOString().slice(0, 10));
+  const [selectedHeatmapDay, setSelectedHeatmapDay] = useState(null);
 
   // 1. REAL METRICS FROM DB STATE
   const totalGoals = state.goals.length;
@@ -42,7 +47,6 @@ export const AnalyticsView = () => {
   // 2. REAL DYNAMIC MONTHLY GOAL RATES
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const monthlyData = monthNames.map((month, idx) => {
-    // Filter goals targeting month idx (0-11)
     const monthGoals = state.goals.filter(g => {
       if (!g.targetDate) return false;
       const d = new Date(g.targetDate);
@@ -76,7 +80,6 @@ export const AnalyticsView = () => {
     };
   });
 
-  // Compute 5-vertex pentagon radar coordinates
   const radarPoints = pillarScores.slice(0, 5).map((p, i) => {
     const angle = (i * 72 - 90) * (Math.PI / 180);
     const radius = (p.score / 100) * 70;
@@ -85,55 +88,108 @@ export const AnalyticsView = () => {
     return `${x},${y}`;
   }).join(' ');
 
-  // 4. REAL 365-DAY HEATMAP FROM DB ACTIVITIES
+  // 4. REAL DYNAMIC HEATMAP WITH PENDING ORANGE & COMPLETE GREEN STATUS
   const generateHeatmapDays = () => {
     const days = [];
     const startDate = new Date(2026, 0, 1);
-    
-    const dateCounts = {};
-    state.microTasks.forEach(m => {
-      if (m.completed) {
-        const d = m.date || '2026-08-02';
-        dateCounts[d] = (dateCounts[d] || 0) + 2;
-      }
-    });
-    state.timeBlocks.forEach(tb => {
-      if (tb.status === 'completed') {
-        const d = tb.date || '2026-08-02';
-        dateCounts[d] = (dateCounts[d] || 0) + 3;
-      }
-    });
-    state.milestonesTimeline.forEach(mt => {
-      if (mt.date) {
-        dateCounts[mt.date] = (dateCounts[mt.date] || 0) + 4;
-      }
-    });
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10);
+    today.setHours(23, 59, 59, 999);
 
-    for (let i = 0; i < 371; i++) {
-      const date = new Date(startDate);
-      date.setDate(startDate.getDate() + i);
-      const dateStr = date.toISOString().slice(0, 10);
-      
-      const count = dateCounts[dateStr] || 0;
+    let curr = new Date(startDate);
+    while (curr <= today) {
+      const dateStr = curr.toISOString().slice(0, 10);
+      const isPast = dateStr < todayStr;
+      const isToday = dateStr === todayStr;
+
+      // 1. Filter Micro Tasks for dateStr
+      const dayTasks = isToday 
+        ? state.microTasks 
+        : state.microTasks.filter(m => m.date === dateStr);
+      const completedTasks = dayTasks.filter(m => m.completed);
+      const pendingTasks = dayTasks.filter(m => !m.completed);
+
+      // 2. Filter Time Blocks for dateStr
+      const dayBlocks = isToday 
+        ? state.timeBlocks 
+        : state.timeBlocks.filter(tb => tb.date === dateStr);
+      const completedBlocks = dayBlocks.filter(tb => tb.status === 'completed');
+      const pendingBlocks = dayBlocks.filter(tb => tb.status !== 'completed');
+
+      // 3. Filter Goals targeting dateStr
+      const dayGoals = isToday 
+        ? state.goals 
+        : state.goals.filter(g => g.targetDate === dateStr);
+      const completedGoalsList = dayGoals.filter(g => g.column === 'complete');
+      const pendingGoalsList = dayGoals.filter(g => g.column !== 'complete');
+
+      // 4. Habit Stack for dateStr
+      const dayHabits = state.habits;
+      const completedHabitsList = dayHabits.filter(h => h.completed);
+      const pendingHabitsList = dayHabits.filter(h => !h.completed);
+
+      const totalItems = dayTasks.length + dayBlocks.length + dayGoals.length + (isToday ? dayHabits.length : 0);
+      const totalPending = pendingTasks.length + pendingBlocks.length + pendingGoalsList.length + (isToday ? pendingHabitsList.length : 0);
+      const totalCompleted = completedTasks.length + completedBlocks.length + completedGoalsList.length + (isToday ? completedHabitsList.length : 0);
+
+      let status = 'empty'; // 'empty' | 'completed' | 'pending'
       let level = 0;
-      if (count >= 6) level = 4;
-      else if (count >= 4) level = 3;
-      else if (count >= 2) level = 2;
-      else if (count >= 1) level = 1;
+
+      if (totalItems > 0) {
+        if (totalPending > 0) {
+          status = 'pending'; // Orange warning if any task, habit, block, or goal is pending
+        } else if (totalCompleted > 0) {
+          status = 'completed'; // Green if ALL items are 100% completed
+          const count = totalCompleted * 2;
+          if (count >= 6) level = 4;
+          else if (count >= 4) level = 3;
+          else if (count >= 2) level = 2;
+          else level = 1;
+        }
+      }
 
       days.push({
         date: dateStr,
+        status,
         level,
-        count
+        isPast,
+        isToday,
+        dayTasks,
+        completedTasks,
+        pendingTasks,
+        dayBlocks,
+        completedBlocks,
+        pendingBlocks,
+        dayGoals,
+        completedGoalsList,
+        pendingGoalsList,
+        dayHabits,
+        completedHabitsList,
+        pendingHabitsList,
+        totalCompleted,
+        totalPending
       });
+
+      curr.setDate(curr.getDate() + 1);
     }
     return days;
   };
 
   const heatmapDays = generateHeatmapDays();
 
-  const getHeatmapColorStyle = (level) => {
-    switch (level) {
+  const getHeatmapColorStyle = (day) => {
+    if (!day) return { backgroundColor: 'var(--fs-heatmap-l0)' };
+
+    if (day.status === 'pending') {
+      // Warning Orange for ANY pending task, habit, timeblock, or goal
+      return { 
+        backgroundColor: '#f97316', 
+        border: '1px solid #f97316',
+        boxShadow: '0 0 6px rgba(249, 115, 22, 0.7)'
+      };
+    }
+
+    switch (day.level) {
       case 0: return { backgroundColor: 'var(--fs-heatmap-l0)' };
       case 1: return { backgroundColor: 'var(--fs-heatmap-l1)' };
       case 2: return { backgroundColor: 'var(--fs-heatmap-l2)' };
@@ -220,23 +276,33 @@ export const AnalyticsView = () => {
 
       {/* HEATMAP SECTION */}
       <div className="card-glass space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h2 className="text-sm font-bold text-[var(--fs-color-text-primary)] flex items-center space-x-2">
               <Calendar className="w-4 h-4 text-[var(--fs-color-brand-primary)]" />
-              <span>365-Day Productivity Heatmap (2026)</span>
+              <span>Dynamic Productivity Activity Grid</span>
             </h2>
-            <p className="text-xs text-[var(--fs-color-text-secondary)]">53 weeks × 7 days (371 activity cells)</p>
+            <p className="text-xs text-[var(--fs-color-text-secondary)]">Click any date cell to view task details. Red cells highlight missed past tasks.</p>
           </div>
 
-          <div className="flex items-center space-x-1 text-[10px] text-[var(--fs-color-text-tertiary)]">
-            <span>Less</span>
-            <span className="w-3 h-3 rounded-[2px]" style={getHeatmapColorStyle(0)} />
-            <span className="w-3 h-3 rounded-[2px]" style={getHeatmapColorStyle(1)} />
-            <span className="w-3 h-3 rounded-[2px]" style={getHeatmapColorStyle(2)} />
-            <span className="w-3 h-3 rounded-[2px]" style={getHeatmapColorStyle(3)} />
-            <span className="w-3 h-3 rounded-[2px]" style={getHeatmapColorStyle(4)} />
-            <span>More</span>
+          {/* Legend */}
+          <div className="flex items-center space-x-3 text-[10px] text-[var(--fs-color-text-tertiary)] flex-wrap">
+            <span className="flex items-center space-x-1">
+              <span className="w-3 h-3 rounded-[2px]" style={{ backgroundColor: 'var(--fs-heatmap-l0)' }} />
+              <span>None</span>
+            </span>
+            <span className="flex items-center space-x-1">
+              <span className="w-3 h-3 rounded-[2px]" style={{ backgroundColor: 'var(--fs-heatmap-l2)' }} />
+              <span>Completed</span>
+            </span>
+            <span className="flex items-center space-x-1">
+              <span className="w-3 h-3 rounded-[2px] bg-amber-500" />
+              <span>Pending Today</span>
+            </span>
+            <span className="flex items-center space-x-1">
+              <span className="w-3 h-3 rounded-[2px] bg-rose-500" />
+              <span>Missed Warning</span>
+            </span>
           </div>
         </div>
 
@@ -245,9 +311,10 @@ export const AnalyticsView = () => {
             {heatmapDays.map((d, idx) => (
               <div
                 key={idx}
-                className="w-3 h-3 rounded-[2px] transition-transform hover:scale-125 cursor-pointer"
-                style={getHeatmapColorStyle(d.level)}
-                title={`${d.date}: ${d.count} activities logged`}
+                onClick={() => setSelectedHeatmapDay(d)}
+                className="w-3 h-3 rounded-[2px] transition-all hover:scale-125 cursor-pointer"
+                style={getHeatmapColorStyle(d)}
+                title={`${d.date}: ${d.totalCompleted} completed, ${d.totalPending} pending`}
               />
             ))}
           </div>
@@ -450,6 +517,142 @@ export const AnalyticsView = () => {
           )}
         </div>
       </div>
+
+      {/* HEATMAP DAY DETAIL MODAL */}
+      {selectedHeatmapDay && (
+        <div className="modal-overlay" onClick={() => setSelectedHeatmapDay(null)}>
+          <div className="modal-content max-w-lg space-y-4" onClick={e => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--fs-color-surface-glass-border)]">
+              <div>
+                <h3 className="text-base font-bold text-[var(--fs-color-text-primary)]">
+                  Daily Log Details: {selectedHeatmapDay.date}
+                </h3>
+                <p className="text-xs text-[var(--fs-color-text-secondary)]">
+                  {selectedHeatmapDay.isToday ? 'Today\'s Activity Snapshot' : 'Historical Past Record'}
+                </p>
+              </div>
+              <button onClick={() => setSelectedHeatmapDay(null)} className="btn-icon">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Status Alert Banner */}
+            {selectedHeatmapDay.status === 'pending' ? (
+              <div className="p-3.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-medium space-y-1">
+                <div className="flex items-center space-x-1.5 font-bold text-amber-300">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>⚠️ Pending Execution Warning</span>
+                </div>
+                <p>
+                  You have {selectedHeatmapDay.totalPending} pending task(s), habit(s), or time block(s) uncompleted for this date.
+                  Complete all items to turn this day green!
+                </p>
+              </div>
+            ) : selectedHeatmapDay.status === 'completed' ? (
+              <div className="p-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-medium flex items-center space-x-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>🎉 100% Clean Execution! All microtasks, habits, schedules, and goals completed for this date!</span>
+              </div>
+            ) : (
+              <div className="p-3 rounded-xl bg-[var(--fs-color-surface-elevated)] border border-[var(--fs-color-surface-glass-border)] text-xs text-[var(--fs-color-text-secondary)] flex items-center space-x-2">
+                <Info className="w-4 h-4 text-[var(--fs-color-text-tertiary)] shrink-0" />
+                <span>No activity or schedules were recorded for this date.</span>
+              </div>
+            )}
+
+            {/* Summary Stats */}
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="p-3 rounded-xl bg-[var(--fs-color-surface-elevated)] border border-[var(--fs-color-surface-glass-border)]">
+                <span className="text-[var(--fs-color-text-secondary)] font-medium block mb-1">Completed Items</span>
+                <span className="text-lg font-bold text-[var(--fs-color-success)]">{selectedHeatmapDay.totalCompleted}</span>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[var(--fs-color-surface-elevated)] border border-[var(--fs-color-surface-glass-border)]">
+                <span className="text-[var(--fs-color-text-secondary)] font-medium block mb-1">Pending Items</span>
+                <span className={`text-lg font-bold ${selectedHeatmapDay.totalPending > 0 ? 'text-amber-400' : 'text-[var(--fs-color-text-secondary)]'}`}>
+                  {selectedHeatmapDay.totalPending}
+                </span>
+              </div>
+            </div>
+
+            {/* Itemized Tasks Breakdown */}
+            <div className="space-y-3 pt-2">
+              <h4 className="text-xs font-bold text-[var(--fs-color-text-secondary)] uppercase tracking-wider">
+                Execution Breakdown (Microtasks, Schedules, Habits, Goals)
+              </h4>
+
+              <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                {/* 1. Micro Tasks */}
+                {selectedHeatmapDay.dayTasks.map(t => (
+                  <div key={t.id} className={`p-2.5 rounded-xl border flex items-center justify-between text-xs ${
+                    t.completed
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-medium'
+                      : 'bg-amber-500/10 border-amber-500/30 text-amber-400 font-medium'
+                  }`}>
+                    <div className="flex items-center space-x-2 truncate">
+                      {t.completed ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      ) : (
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      )}
+                      <span className="truncate">{t.title} (Microtask)</span>
+                    </div>
+                    <span className="text-[10px] font-mono shrink-0 ml-2">{t.completed ? 'Done ✓' : 'Pending'}</span>
+                  </div>
+                ))}
+
+                {/* 2. Time Blocks */}
+                {selectedHeatmapDay.dayBlocks.map(tb => (
+                  <div key={tb.id} className={`p-2.5 rounded-xl border flex items-center justify-between text-xs ${
+                    tb.status === 'completed'
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-medium'
+                      : 'bg-amber-500/10 border-amber-500/30 text-amber-400 font-medium'
+                  }`}>
+                    <div className="flex items-center space-x-2 truncate">
+                      <Clock className="w-3.5 h-3.5 text-[var(--fs-color-brand-primary)] shrink-0" />
+                      <span className="font-mono text-[var(--fs-color-brand-primary)]">{tb.timeSlot}</span>
+                      <span className="truncate">{tb.title}</span>
+                    </div>
+                    <span className="text-[10px] badge badge-category shrink-0 ml-2">{tb.status}</span>
+                  </div>
+                ))}
+
+                {/* 3. Habit Stack */}
+                {selectedHeatmapDay.isToday && selectedHeatmapDay.dayHabits.map(h => (
+                  <div key={h.id} className={`p-2.5 rounded-xl border flex items-center justify-between text-xs ${
+                    h.completed
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-medium'
+                      : 'bg-amber-500/10 border-amber-500/30 text-amber-400 font-medium'
+                  }`}>
+                    <div className="flex items-center space-x-2 truncate">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <span className="truncate">{h.name} (Habit)</span>
+                    </div>
+                    <span className="text-[10px] font-mono shrink-0 ml-2">{h.completed ? 'Done ✓' : 'Pending'}</span>
+                  </div>
+                ))}
+
+                {/* 4. Goals */}
+                {selectedHeatmapDay.dayGoals.map(g => (
+                  <div key={g.id} className={`p-2.5 rounded-xl border flex items-center justify-between text-xs ${
+                    g.column === 'complete'
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-medium'
+                      : 'bg-amber-500/10 border-amber-500/30 text-amber-400 font-medium'
+                  }`}>
+                    <div className="flex items-center space-x-2 truncate">
+                      <Target className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <span className="truncate">{g.title} (Goal Target)</span>
+                    </div>
+                    <span className="text-[10px] font-mono shrink-0 ml-2">{g.column === 'complete' ? 'Completed' : `${g.progress}%`}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

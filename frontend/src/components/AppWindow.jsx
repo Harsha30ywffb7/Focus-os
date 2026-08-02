@@ -11,7 +11,8 @@ import {
   Plus,
   HelpCircle,
   Clock,
-  PanelLeft
+  PanelLeft,
+  Menu
 } from 'lucide-react';
 
 export const AppWindow = ({ children }) => {
@@ -21,27 +22,28 @@ export const AppWindow = ({ children }) => {
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
+  // Update clock every minute
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
+  // Keyboard Shortcuts (⌘K, ⌘N, ⌘/)
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setIsCommandOpen(prev => !prev);
       }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'n') {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
         e.preventDefault();
-        setIsNewTaskOpen(prev => !prev);
+        setIsNewTaskOpen(true);
       }
       if ((e.metaKey || e.ctrlKey) && e.key === '/') {
         e.preventDefault();
         setIsHelpOpen(prev => !prev);
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
@@ -50,32 +52,35 @@ export const AppWindow = ({ children }) => {
   const formattedDate = currentTime.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-0 md:p-4 lg:p-6 bg-[var(--fs-color-surface-base)] transition-colors duration-300">
+    <div className="h-screen w-full flex flex-col bg-[var(--fs-color-surface-base)] transition-colors duration-300 overflow-hidden">
 
-      {/* Outer macOS Application Frame */}
-      <div className="w-full max-w-[1440px] h-screen md:h-[94vh] flex flex-col rounded-none md:rounded-2xl overflow-hidden glass-panel border border-[var(--fs-color-surface-glass-border)] shadow-[var(--fs-elevation-4)] transition-all duration-300">
+      {/* 100% Full Screen Application Frame */}
+      <div className="w-full h-full flex flex-col overflow-hidden glass-panel border-none">
 
         {/* Title Bar */}
-        <header className="h-10 flex items-center justify-between px-4 border-b border-[var(--fs-color-surface-glass-border)] bg-[var(--fs-color-surface-secondary)] select-none z-[var(--fs-z-sticky)]">
+        <header className="h-10 flex items-center justify-between px-3 md:px-4 border-b border-[var(--fs-color-surface-glass-border)] bg-[var(--fs-color-surface-secondary)] select-none z-[var(--fs-z-sticky)]">
 
-          {/* Traffic Lights Controls + Sidebar Toggle Button */}
+          {/* Left Controls & Sidebar Toggle Button */}
           <div className="flex items-center space-x-2">
-            <button className="traffic-light close" title="Close" />
-            <button className="traffic-light minimize" title="Minimize" />
-            <button className="traffic-light maximize" title="Maximize" />
-
-            <div className="h-4 w-[1px] bg-[var(--fs-color-surface-glass-border)] mx-1" />
-
-            {/* Sidebar Toggle Button */}
+            {/* Desktop Sidebar Toggle Button */}
             <button
               onClick={toggleSidebar}
-              className="p-1 rounded text-[var(--fs-color-text-secondary)] hover:text-[var(--fs-color-text-primary)] hover:bg-[var(--fs-color-surface-tertiary)] transition-colors"
+              className="hidden md:flex p-1 rounded text-[var(--fs-color-text-secondary)] hover:text-[var(--fs-color-text-primary)] hover:bg-[var(--fs-color-surface-tertiary)] transition-colors"
               title={state.isSidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
             >
               <PanelLeft className="w-4 h-4" />
             </button>
 
-            <span className="text-xs font-semibold text-[var(--fs-color-text-secondary)] hidden sm:inline-block">
+            {/* Mobile Hamburger Menu Toggle Button */}
+            <button
+              onClick={toggleSidebar}
+              className="flex md:hidden p-1 rounded text-[var(--fs-color-text-secondary)] hover:text-[var(--fs-color-text-primary)] hover:bg-[var(--fs-color-surface-tertiary)] transition-colors"
+              title="Toggle Menu"
+            >
+              <Menu className="w-4 h-4 text-[var(--fs-color-brand-primary)]" />
+            </button>
+
+            <span className="text-xs font-bold text-[var(--fs-color-text-primary)] tracking-tight">
               FocusOS
             </span>
           </div>
@@ -110,7 +115,7 @@ export const AppWindow = ({ children }) => {
 
             <button
               onClick={() => setIsHelpOpen(true)}
-              className="btn-icon w-8 h-8 min-w-[32px] min-h-[32px]"
+              className="btn-icon hidden sm:flex w-8 h-8 min-w-[32px] min-h-[32px]"
               title="Shortcuts (Cmd+/)"
             >
               <HelpCircle className="w-4 h-4" />

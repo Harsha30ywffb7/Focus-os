@@ -1,6 +1,5 @@
--- =========================================================
+
 -- FocusOS PostgreSQL & Supabase Database Schemas and Relations
--- =========================================================
 
 -- DROP OLD TABLES IF NEEDED
 DROP TABLE IF EXISTS goal_subtasks CASCADE;

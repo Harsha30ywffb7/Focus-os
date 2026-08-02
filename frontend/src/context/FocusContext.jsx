@@ -310,6 +310,7 @@ export const FocusProvider = ({ children }) => {
   };
 
   const deleteHabit = (id) => {
+    if (!window.confirm('Are you sure you want to delete this habit?')) return;
     setState(prev => ({
       ...prev,
       habits: prev.habits.filter(h => h.id !== id)
@@ -337,6 +338,7 @@ export const FocusProvider = ({ children }) => {
   };
 
   const deleteTimeBlock = (id) => {
+    if (!window.confirm('Are you sure you want to delete this time block?')) return;
     setState(prev => ({
       ...prev,
       timeBlocks: prev.timeBlocks.filter(tb => tb.id !== id)
@@ -377,6 +379,7 @@ export const FocusProvider = ({ children }) => {
   };
 
   const deleteMicroTask = (id) => {
+    if (!window.confirm('Are you sure you want to delete this task?')) return;
     setState(prev => ({
       ...prev,
       microTasks: prev.microTasks.filter(m => m.id !== id)
@@ -429,6 +432,7 @@ export const FocusProvider = ({ children }) => {
   };
 
   const deleteGoal = (goalId) => {
+    if (!window.confirm('Are you sure you want to delete this goal?')) return;
     setState(prev => ({
       ...prev,
       goals: prev.goals.filter(g => g.id !== goalId)
@@ -479,6 +483,7 @@ export const FocusProvider = ({ children }) => {
   };
 
   const deleteMilestone = (pillarId, milestoneId) => {
+    if (!window.confirm('Are you sure you want to delete this milestone checkpoint?')) return;
     setState(prev => ({
       ...prev,
       pillars: prev.pillars.map(p => p.id === pillarId ? {
@@ -506,6 +511,7 @@ export const FocusProvider = ({ children }) => {
   };
 
   const deleteTimelineItem = (id) => {
+    if (!window.confirm('Are you sure you want to delete this breakthrough moment?')) return;
     setState(prev => ({
       ...prev,
       milestonesTimeline: prev.milestonesTimeline.filter(mt => mt.id !== id)

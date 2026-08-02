@@ -95,18 +95,10 @@ export const TodayView = () => {
             
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <CloudSun className="w-5 h-5 text-amber-400" />
-                <span className="text-sm font-bold text-[var(--fs-color-text-primary)]">Morning Brief</span>
+                <Sun className="w-5 h-5 text-amber-400" />
+                <span className="text-sm font-bold text-[var(--fs-color-text-primary)]">Morning Focus Brief</span>
               </div>
-              <span className="text-xs text-[var(--fs-color-text-tertiary)]">{state.weather.city}</span>
-            </div>
-
-            <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--fs-color-surface-secondary)] border border-[var(--fs-color-surface-glass-border)]">
-              <div>
-                <div className="text-2xl font-bold text-[var(--fs-color-text-primary)]">{state.weather.temp}°C</div>
-                <div className="text-xs text-[var(--fs-color-text-secondary)] font-medium">{state.weather.condition}</div>
-              </div>
-              <span className="badge badge-category">Optimal Focus ☀️</span>
+              <span className="badge badge-category font-semibold">Optimal Focus ☀️</span>
             </div>
 
             {/* Top 3 Priorities */}
@@ -352,24 +344,34 @@ export const TodayView = () => {
           {/* Micro Tasks */}
           <div className="card-glass space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-[var(--fs-color-text-primary)] flex items-center space-x-2">
-                <CheckCircle2 className="w-4 h-4 text-[var(--fs-color-success)]" />
-                <span>Micro Tasks</span>
-              </h3>
-              <span className="badge badge-category">
-                {state.microTasks.filter(m => m.completed).length}/{state.microTasks.length} Completed
+              <div className="flex items-center space-x-2">
+                <CheckCircle2 className="w-4 h-4 text-[var(--fs-color-brand-primary)]" />
+                <h3 className="text-sm font-bold text-[var(--fs-color-text-primary)]">Micro Tasks</h3>
+              </div>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-[var(--fs-color-surface-tertiary)] text-[var(--fs-color-text-secondary)] border border-[var(--fs-color-surface-glass-border)]">
+                {state.microTasks.filter(m => m.completed).length}/{state.microTasks.length} Done
               </span>
             </div>
 
-            {/* Quick Add Form */}
+            {/* Quick Add Form - Shadcn Input Group */}
             <form onSubmit={handleAddMicro} className="space-y-2">
-              <input
-                type="text"
-                placeholder="Add new micro task..."
-                value={newMicroText}
-                onChange={(e) => setNewMicroText(e.target.value)}
-                className="input-text w-full text-xs"
-              />
+              <div className="relative flex items-center">
+                <input
+                  type="text"
+                  placeholder="Add a task title..."
+                  value={newMicroText}
+                  onChange={(e) => setNewMicroText(e.target.value)}
+                  className="input-text w-full text-xs pr-10 py-2"
+                />
+                <button
+                  type="submit"
+                  disabled={!newMicroText.trim()}
+                  className="absolute right-1.5 p-1.5 rounded-md bg-[var(--fs-color-brand-primary)] text-white disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
+                  title="Add Task"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              </div>
               
               <div className="grid grid-cols-2 gap-2">
                 <select
@@ -377,9 +379,10 @@ export const TodayView = () => {
                   onChange={(e) => setNewMicroCategory(e.target.value)}
                   className="input-text text-[11px] py-1.5 px-2 cursor-pointer w-full"
                 >
-                  <option value="Engineering">Code</option>
-                  <option value="Admin">Admin</option>
+                  <option value="Engineering">Engineering</option>
+                  <option value="Product">Product</option>
                   <option value="Design">Design</option>
+                  <option value="Operations">Operations</option>
                   <option value="Personal">Personal</option>
                 </select>
 
@@ -388,58 +391,61 @@ export const TodayView = () => {
                   onChange={(e) => setNewMicroPriority(e.target.value)}
                   className="input-text text-[11px] py-1.5 px-2 cursor-pointer w-full"
                 >
-                  <option value="high">High 🔴</option>
-                  <option value="medium">Med 🟡</option>
-                  <option value="low">Low 🟢</option>
+                  <option value="high">P1 - High Priority</option>
+                  <option value="medium">P2 - Medium Priority</option>
+                  <option value="low">P3 - Low Priority</option>
                 </select>
               </div>
-
-              <button type="submit" className="btn-primary w-full py-2 min-h-[36px] text-xs font-bold flex items-center justify-center space-x-1.5">
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add Micro Task</span>
-              </button>
             </form>
 
             {/* Task Item Rows */}
             <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-              {state.microTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className={`p-3 rounded-xl border flex items-center justify-between gap-2 transition-all ${
-                    task.completed
-                      ? 'bg-[var(--fs-color-success)]/10 border-[var(--fs-color-success)]/30 text-[var(--fs-color-success)] opacity-80'
-                      : 'bg-[var(--fs-color-surface-elevated)] border-[var(--fs-color-surface-glass-border)] text-[var(--fs-color-text-primary)]'
-                  }`}
-                >
-                  <div className="flex items-center space-x-2.5 flex-1 min-w-0">
-                    <button onClick={() => toggleMicroTask(task.id)} className="flex-shrink-0">
-                      {task.completed ? (
-                        <CheckCircle2 className="w-4.5 h-4.5 text-[var(--fs-color-success)]" />
-                      ) : (
-                        <Circle className="w-4.5 h-4.5 text-[var(--fs-color-text-tertiary)] hover:text-[var(--fs-color-brand-primary)]" />
-                      )}
-                    </button>
-                    <span className={`text-xs font-semibold truncate ${task.completed ? 'line-through opacity-70' : ''}`}>
-                      {task.title}
-                    </span>
-                  </div>
+              {state.microTasks.length === 0 ? (
+                <p className="text-xs text-[var(--fs-color-text-tertiary)] italic p-3 text-center">No micro tasks added yet.</p>
+              ) : (
+                state.microTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 transition-all ${
+                      task.completed
+                        ? 'bg-[var(--fs-color-surface-secondary)]/50 border-[var(--fs-color-surface-glass-border)] opacity-60'
+                        : 'bg-[var(--fs-color-surface-elevated)] border-[var(--fs-color-surface-glass-border)] hover:border-[var(--fs-color-brand-primary)]/40'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2.5 flex-1 min-w-0">
+                      <button onClick={() => toggleMicroTask(task.id)} className="flex-shrink-0 focus:outline-none">
+                        {task.completed ? (
+                          <CheckCircle2 className="w-4 h-4 text-[var(--fs-color-success)]" />
+                        ) : (
+                          <Circle className="w-4 h-4 text-[var(--fs-color-text-tertiary)] hover:text-[var(--fs-color-brand-primary)] transition-colors" />
+                        )}
+                      </button>
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-xs font-medium truncate leading-snug ${task.completed ? 'line-through text-[var(--fs-color-text-tertiary)]' : 'text-[var(--fs-color-text-primary)]'}`}>
+                          {task.title}
+                        </p>
+                        <span className="text-[10px] text-[var(--fs-color-text-tertiary)] font-mono">{task.category || 'General'}</span>
+                      </div>
+                    </div>
 
-                  <div className="flex items-center space-x-1.5 flex-shrink-0">
-                    <span className={`badge ${
-                      task.priority === 'high' ? 'badge-priority-high' : task.priority === 'medium' ? 'badge-priority-medium' : 'badge-priority-low'
-                    }`}>
-                      {task.priority.toUpperCase()}
-                    </span>
-                    <button
-                      onClick={() => deleteMicroTask(task.id)}
-                      className="p-1 rounded-md text-[var(--fs-color-text-tertiary)] hover:text-[var(--fs-color-danger)] hover:bg-[var(--fs-color-surface-tertiary)] transition-colors"
-                      title="Delete Micro Task"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center space-x-1.5 flex-shrink-0">
+                      <span className={`badge ${
+                        task.priority === 'high' ? 'badge-priority-high' : task.priority === 'medium' ? 'badge-priority-medium' : 'badge-priority-low'
+                      }`}>
+                        {task.priority === 'high' ? 'High' : task.priority === 'medium' ? 'Med' : 'Low'}
+                      </span>
+
+                      <button
+                        onClick={() => deleteMicroTask(task.id)}
+                        className="p-1 rounded-md text-[var(--fs-color-text-tertiary)] hover:text-[var(--fs-color-danger)] hover:bg-[var(--fs-color-surface-tertiary)] transition-colors"
+                        title="Delete task"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
 
           </div>

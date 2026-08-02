@@ -115,42 +115,18 @@ export const SettingsView = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          
+        <div className="max-w-md">
           {/* Export JSON */}
           <button
             onClick={exportDataJSON}
-            className="p-4 rounded-xl bg-[var(--fs-color-surface-elevated)] border border-[var(--fs-color-surface-glass-border)] flex flex-col items-center justify-center space-y-2 hover:border-[var(--fs-color-brand-primary)] transition-all text-center group"
+            className="w-full p-4 rounded-xl bg-[var(--fs-color-surface-elevated)] border border-[var(--fs-color-surface-glass-border)] flex items-center space-x-3 hover:border-[var(--fs-color-brand-primary)] transition-all group text-left"
           >
-            <Download className="w-6 h-6 text-[var(--fs-color-brand-primary)] group-hover:scale-110 transition-transform" />
+            <Download className="w-6 h-6 text-[var(--fs-color-brand-primary)] group-hover:scale-110 transition-transform shrink-0" />
             <div>
               <span className="text-xs font-bold text-[var(--fs-color-text-primary)] block">Export Backup (JSON)</span>
-              <span className="text-[10px] text-[var(--fs-color-text-secondary)]">Download complete dataset</span>
+              <span className="text-[10px] text-[var(--fs-color-text-secondary)]">Download complete database snapshot</span>
             </div>
           </button>
-
-          {/* Import JSON */}
-          <label className="p-4 rounded-xl bg-[var(--fs-color-surface-elevated)] border border-[var(--fs-color-surface-glass-border)] flex flex-col items-center justify-center space-y-2 hover:border-[var(--fs-color-brand-primary)] transition-all text-center cursor-pointer group">
-            <Upload className="w-6 h-6 text-[var(--fs-color-category-relations)] group-hover:scale-110 transition-transform" />
-            <div>
-              <span className="text-xs font-bold text-[var(--fs-color-text-primary)] block">Restore from JSON</span>
-              <span className="text-[10px] text-[var(--fs-color-text-secondary)]">Upload `.json` backup file</span>
-            </div>
-            <input type="file" accept=".json" onChange={handleFileUpload} className="hidden" />
-          </label>
-
-          {/* Load Sample Demo Data */}
-          <button
-            onClick={loadSampleData}
-            className="p-4 rounded-xl bg-[var(--fs-color-brand-primary)]/15 border border-[var(--fs-color-brand-primary)]/40 flex flex-col items-center justify-center space-y-2 hover:bg-[var(--fs-color-brand-primary)]/25 transition-all text-center group"
-          >
-            <Sparkles className="w-6 h-6 text-[var(--fs-color-brand-primary)] group-hover:rotate-12 transition-transform" />
-            <div>
-              <span className="text-xs font-bold text-[var(--fs-color-text-primary)] block">Load Demo Data</span>
-              <span className="text-[10px] text-[var(--fs-color-brand-primary)]">Populate goals & pillars</span>
-            </div>
-          </button>
-
         </div>
 
         {/* Clear All Data */}

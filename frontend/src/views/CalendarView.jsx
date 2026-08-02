@@ -5,7 +5,8 @@ import {
   ChevronLeft, 
   ChevronRight, 
   Clock, 
-  Target 
+  Target,
+  CheckCircle2
 } from 'lucide-react';
 
 export const CalendarView = () => {
@@ -77,19 +78,21 @@ export const CalendarView = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         {/* Grid (8 Cols) */}
-        <div className="lg:col-span-8 card-glass space-y-4">
+        <div className="lg:col-span-8 card-glass space-y-4 overflow-hidden">
           
-          <div className="grid grid-cols-7 text-center text-xs font-bold text-[var(--fs-color-text-secondary)] uppercase tracking-wider pb-2 border-b border-[var(--fs-color-surface-glass-border)]">
-            <span>Sun</span>
-            <span>Mon</span>
-            <span>Tue</span>
-            <span>Wed</span>
-            <span>Thu</span>
-            <span>Fri</span>
-            <span>Sat</span>
-          </div>
+          <div className="overflow-x-auto pb-2">
+            <div className="min-w-[600px] space-y-4">
+              <div className="grid grid-cols-7 text-center text-xs font-bold text-[var(--fs-color-text-secondary)] uppercase tracking-wider pb-2 border-b border-[var(--fs-color-surface-glass-border)]">
+                <span>Sun</span>
+                <span>Mon</span>
+                <span>Tue</span>
+                <span>Wed</span>
+                <span>Thu</span>
+                <span>Fri</span>
+                <span>Sat</span>
+              </div>
 
-          <div className="grid grid-cols-7 gap-2">
+              <div className="grid grid-cols-7 gap-2">
             {daysArray.map((dayNum, index) => {
               if (dayNum === null) {
                 return <div key={`empty-${index}`} className="h-24 rounded-xl bg-[var(--fs-color-surface-secondary)]/30" />;
@@ -139,53 +142,90 @@ export const CalendarView = () => {
               );
             })}
           </div>
+        </div>
+      </div>
 
         </div>
 
-        {/* Day Agenda Details (4 Cols) */}
+        {/* Day Agenda & Achievement History Details (4 Cols) */}
         <div className="lg:col-span-4 card-glass space-y-6">
           <div className="border-b border-[var(--fs-color-surface-glass-border)] pb-4">
-            <h3 className="text-base font-bold text-[var(--fs-color-text-primary)]">
-              Agenda for August {selectedDay}, 2026
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-[var(--fs-color-text-primary)]">
+                Daily Log & Achievements
+              </h3>
+              <span className="badge badge-category font-mono text-[10px]">
+                {selectedDateStr}
+              </span>
+            </div>
             <p className="text-xs text-[var(--fs-color-text-secondary)] mt-1">
-              Time blocks and active deadlines
+              Historical record of tasks, time blocks, and milestones.
             </p>
           </div>
 
+          {/* 1. Executed Time Blocks */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold text-[var(--fs-color-text-secondary)] uppercase tracking-wider flex items-center space-x-1.5">
               <Clock className="w-3.5 h-3.5 text-[var(--fs-color-brand-primary)]" />
-              <span>Time Blocks ({dayTimeBlocks.length})</span>
+              <span>Scheduled Time Blocks ({dayTimeBlocks.length})</span>
             </h4>
 
-            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-              {dayTimeBlocks.map(tb => (
-                <div key={tb.id} className="p-3 rounded-xl bg-[var(--fs-color-surface-elevated)] border border-[var(--fs-color-surface-glass-border)] flex items-center justify-between text-xs">
-                  <div>
-                    <span className="font-mono text-[var(--fs-color-brand-primary)] font-bold mr-2">{tb.timeSlot}</span>
-                    <span className="text-[var(--fs-color-text-primary)] font-medium">{tb.title}</span>
+            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+              {dayTimeBlocks.length === 0 ? (
+                <p className="text-xs text-[var(--fs-color-text-tertiary)] italic">No time blocks scheduled.</p>
+              ) : (
+                dayTimeBlocks.map(tb => (
+                  <div key={tb.id} className="p-2.5 rounded-xl bg-[var(--fs-color-surface-elevated)] border border-[var(--fs-color-surface-glass-border)] flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-mono text-[var(--fs-color-brand-primary)] font-bold mr-2">{tb.timeSlot}</span>
+                      <span className="text-[var(--fs-color-text-primary)] font-medium">{tb.title}</span>
+                    </div>
+                    <span className="badge badge-category text-[10px]">
+                      {tb.category}
+                    </span>
                   </div>
-                  <span className="badge badge-category text-[10px]">
-                    {tb.category}
-                  </span>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
+          {/* 2. Micro Tasks Executed */}
+          <div className="space-y-3 pt-4 border-t border-[var(--fs-color-surface-glass-border)]">
+            <h4 className="text-xs font-bold text-[var(--fs-color-text-secondary)] uppercase tracking-wider flex items-center space-x-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-[var(--fs-color-success)]" />
+              <span>Micro Tasks ({state.microTasks.length})</span>
+            </h4>
+
+            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+              {state.microTasks.length === 0 ? (
+                <p className="text-xs text-[var(--fs-color-text-tertiary)] italic">No tasks recorded.</p>
+              ) : (
+                state.microTasks.map(m => (
+                  <div key={m.id} className={`p-2 rounded-xl border flex items-center justify-between text-xs ${
+                    m.completed ? 'bg-[var(--fs-color-success)]/10 border-[var(--fs-color-success)]/30 text-[var(--fs-color-success)] font-medium' : 'bg-[var(--fs-color-surface-elevated)] border-[var(--fs-color-surface-glass-border)] text-[var(--fs-color-text-primary)]'
+                  }`}>
+                    <span className={`truncate ${m.completed ? 'line-through' : ''}`}>{m.title}</span>
+                    <span className="text-[10px] font-mono opacity-80">{m.completed ? 'Done ✓' : 'Pending'}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* 3. Goal Targets */}
           <div className="space-y-3 pt-4 border-t border-[var(--fs-color-surface-glass-border)]">
             <h4 className="text-xs font-bold text-[var(--fs-color-text-secondary)] uppercase tracking-wider flex items-center space-x-1.5">
               <Target className="w-3.5 h-3.5 text-amber-400" />
-              <span>Goal Target Dates ({dayGoals.length})</span>
+              <span>Goal Deadlines & Progress</span>
             </h4>
 
             {dayGoals.length === 0 ? (
               <p className="text-xs text-[var(--fs-color-text-tertiary)] italic">No goal deadlines set for this day.</p>
             ) : (
               dayGoals.map(g => (
-                <div key={g.id} className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-600 dark:text-amber-300 font-semibold">
-                  {g.title} ({g.progress}%)
+                <div key={g.id} className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-600 dark:text-amber-300 font-semibold flex items-center justify-between">
+                  <span>{g.title}</span>
+                  <span>{g.progress}%</span>
                 </div>
               ))
             )}
