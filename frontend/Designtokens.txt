@@ -1,0 +1,795 @@
+1. DESIGN TOKENS
+
+Design tokens are the atomic values that power the entire system. All values use a semantic naming convention.
+1.1 Token Architecture
+
+Token: --fs-{category}-{property}-{variant}-{state}
+Example: --fs-color-surface-primary-hover
+
+| Category   | Prefix              | Description                                 |
+| ---------- | ------------------- | ------------------------------------------- |
+| Color      | `--fs-color-*`      | All color values                            |
+| Typography | `--fs-type-*`       | Font families, sizes, weights, line-heights |
+| Spacing    | `--fs-space-*`      | Margin, padding, gap values                 |
+| Elevation  | `--fs-elevation-*`  | Shadows, backdrop filters                   |
+| Border     | `--fs-border-*`     | Width, radius, style                        |
+| Motion     | `--fs-motion-*`     | Durations, easings, delays                  |
+| Breakpoint | `--fs-breakpoint-*` | Responsive widths                           |
+
+2. COLOR SYSTEM
+The color system is built on a semantic foundation with Light Mode and Dark Mode variants. The system uses HSL values for programmatic manipulation.
+2.1 Brand Colors
+Table
+Token	Light Mode	Dark Mode	Usage
+--fs-color-brand-primary	hsl(245, 79%, 58%)	hsl(245, 79%, 65%)	Primary buttons, active states, links
+--fs-color-brand-secondary	hsl(263, 70%, 50%)	hsl(263, 70%, 60%)	Gradients, highlights, accents
+--fs-color-brand-gradient	linear-gradient(135deg, hsl(245,79%,58%), hsl(263,70%,50%))	linear-gradient(135deg, hsl(245,79%,65%), hsl(263,70%,60%))	Hero elements, CTAs, progress rings
+
+2.2 Surface Colors (Backgrounds)
+Table
+Token	Light Mode	Dark Mode	Usage
+--fs-color-surface-base	#FFFFFF	#0A0A0F	App background
+--fs-color-surface-elevated	#F5F5F7	#1C1C1E	Cards, panels, modals
+--fs-color-surface-primary	#FFFFFF	#2C2C2E	Primary content areas
+--fs-color-surface-secondary	#F0F0F2	#3A3A3C	Secondary panels, sidebar
+--fs-color-surface-tertiary	#E8E8ED	#48484A	Tertiary elements, disabled backgrounds
+--fs-color-surface-glass	rgba(255,255,255,0.72)	rgba(28,28,30,0.72)	Frosted glass panels
+--fs-color-surface-glass-border	rgba(255,255,255,0.18)	rgba(255,255,255,0.08)	Glass panel borders
+
+
+2.3 Text Colors
+Table
+Token	Light Mode	Dark Mode	Usage
+--fs-color-text-primary	#1D1D1F	#F5F5F7	Headings, primary text
+--fs-color-text-secondary	#6E6E73	#A1A1A6	Subheadings, descriptions
+--fs-color-text-tertiary	#86868B	#8E8E93	Placeholders, hints
+--fs-color-text-inverse	#FFFFFF	#0A0A0F	Text on dark/colored backgrounds
+--fs-color-text-brand	hsl(245, 79%, 58%)	hsl(245, 79%, 65%)	Links, brand mentions
+
+2.4 Semantic Colors (Status & Feedback)
+Table
+Token	Light	Dark	Usage
+--fs-color-success	#34C759	#30D158	Completed tasks, positive trends
+--fs-color-warning	#FF9500	#FF9F0A	In-progress, attention needed
+--fs-color-danger	#FF3B30	#FF453A	Errors, overdue, blocked
+--fs-color-info	#007AFF	#0A84FF	Informational badges
+--fs-color-focus	hsl(245, 79%, 58%)	hsl(245, 79%, 65%)	Focus rings, keyboard na
+
+2.5 Goal Category Colors
+Each life pillar has a dedicated color for visual consistency across the app.
+Table
+Category	Light	Dark	Token
+Career	#5856D6	#5E5CE6	--fs-color-category-career
+Health	#FF2D55	#FF375F	--fs-color-category-health
+Finance	#34C759	#30D158	--fs-color-category-finance
+Learning	#FF9500	#FF9F0A	--fs-color-category-learning
+Relationships	#AF52DE	#BF5AF2	--fs-color-category-relations
+
+
+2.6 Heatmap Intensity Scale
+For the yearly contribution heatmap:
+Table
+Level	Light	Dark	Description
+Level 0	#E5E5EA	#2C2C2E	No activity
+Level 1	#C7D2FE	#312E81	Low activity
+Level 2	#818CF8	#4338CA	Medium activity
+Level 3	#6366F1	#6366F1	High activity
+Level 4	#4338CA	#818CF8	Peak activity
+
+
+3. TYPOGRAPHY
+3.1 Font Stack
+Primary: SF Pro Display, -apple-system, BlinkMacSystemFont, Inter, Segoe UI, Roboto, sans-serif
+Monospace: SF Mono, Menlo, Monaco, Consolas, monospace (used for time displays, statistics)
+3.2 Type Scale
+All sizes use rem units (base: 16px).
+Table
+Token	Size	Weight	Line-Height	Letter-Spacing	Usage
+--fs-type-display	2.5rem (40px)	700	1.1	-0.02em	Hero headings, welcome
+--fs-type-h1	2rem (32px)	700	1.2	-0.02em	Page titles
+--fs-type-h2	1.5rem (24px)	600	1.3	-0.01em	Section headings
+--fs-type-h3	1.25rem (20px)	600	1.4	-0.01em	Card titles, subsections
+--fs-type-h4	1.125rem (18px)	600	1.4	0	List headings
+--fs-type-body	1rem (16px)	400	1.5	0	Body text
+--fs-type-body-sm	0.875rem (14px)	400	1.5	0	Descriptions, labels
+--fs-type-caption	0.75rem (12px)	500	1.4	0.01em	Badges, timestamps
+--fs-type-overline	0.6875rem (11px)	600	1.3	0.06em	ALL CAPS labels
+3.3 Font Weights
+Table
+Token	Value	Usage
+--fs-weight-regular	400	Body text, descriptions
+--fs-weight-medium	500	Buttons, labels, captions
+--fs-weight-semibold	600	Headings, navigation, emphasis
+--fs-weight-bold	700	Display, hero text, numbers
+4. SPACING & LAYOUT
+4.1 Spacing Scale
+Based on an 8px grid system.
+Table
+Token	Value	Usage
+--fs-space-1	4px	Tight gaps, icon padding
+--fs-space-2	8px	Inline spacing, small gaps
+--fs-space-3	12px	Button padding-y, card internal gaps
+--fs-space-4	16px	Standard padding, section gaps
+--fs-space-5	20px	Card padding, form spacing
+--fs-space-6	24px	Section padding, modal internal
+--fs-space-8	32px	Large section gaps
+--fs-space-10	40px	Page padding, major sections
+--fs-space-12	48px	Hero spacing
+--fs-space-16	64px	Major layout divisions
+4.2 Layout Grid
+Desktop (≥1280px): 12-column grid, 24px gutter, max-width 1440px
+Tablet (768px–1279px): 8-column grid, 20px gutter
+Mobile (<768px): 4-column grid, 16px gutter
+4.3 Z-Index Scale
+Table
+Token	Value	Layer
+--fs-z-base	0	Default content
+--fs-z-elevated	10	Cards, panels
+--fs-z-sticky	100	Sticky headers, sidebar
+--fs-z-dropdown	200	Dropdowns, tooltips
+--fs-z-modal	300	Modals, overlays
+--fs-z-toast	400	Notifications, toasts
+5. ELEVATION & SURFACES
+5.1 Shadow System
+Table
+Token	Light Mode	Dark Mode	Usage
+--fs-elevation-1	0 1px 2px rgba(0,0,0,0.04)	0 1px 2px rgba(0,0,0,0.3)	Subtle borders, inputs
+--fs-elevation-2	0 2px 8px rgba(0,0,0,0.06)	0 2px 8px rgba(0,0,0,0.4)	Cards, buttons
+--fs-elevation-3	0 4px 16px rgba(0,0,0,0.08)	0 4px 16px rgba(0,0,0,0.5)	Hover states, dropdowns
+--fs-elevation-4	0 8px 32px rgba(0,0,0,0.12)	0 8px 32px rgba(0,0,0,0.6)	Modals, popovers
+--fs-elevation-glow	0 0 20px rgba(99,102,241,0.15)	0 0 20px rgba(99,102,241,0.25)	Brand glow, focus
+5.2 Backdrop Filter (Glassmorphism)
+css
+.glass-panel {
+  background: var(--fs-color-surface-glass);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--fs-color-surface-glass-border);
+}
+6. BORDER & RADIUS
+6.1 Border Radius Scale
+Table
+Token	Value	Usage
+--fs-radius-sm	6px	Small buttons, tags, badges
+--fs-radius-md	10px	Inputs, small cards, dropdowns
+--fs-radius-lg	14px	Cards, panels, modals
+--fs-radius-xl	18px	Large cards, hero sections
+--fs-radius-full	9999px	Pills, avatars, circular buttons
+6.2 Border Widths
+Table
+Token	Value	Usage
+--fs-border-thin	0.5px	Divider lines, hairlines
+--fs-border-default	1px	Card borders, input borders
+--fs-border-thick	2px	Focus rings, active states
+7. MOTION & ANIMATION
+7.1 Duration Tokens
+Table
+Token	Value	Usage
+--fs-motion-instant	0ms	Immediate state changes
+--fs-motion-fast	150ms	Hover states, color transitions
+--fs-motion-normal	250ms	Standard transitions, page fades
+--fs-motion-slow	400ms	Modal entrances, layout shifts
+--fs-motion-dramatic	600ms	Hero animations, onboarding
+7.2 Easing Tokens
+Table
+Token	Value	Usage
+--fs-ease-default	cubic-bezier(0.4, 0, 0.2, 1)	Standard transitions
+--fs-ease-decelerate	cubic-bezier(0, 0, 0.2, 1)	Entering elements
+--fs-ease-accelerate	cubic-bezier(0.4, 0, 1, 1)	Exiting elements
+--fs-ease-spring	cubic-bezier(0.34, 1.56, 0.64, 1)	Playful bounces, toggles
+7.3 Animation Patterns
+Page Transition:
+css
+.page-enter {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 250ms var(--fs-ease-decelerate),
+              transform 250ms var(--fs-ease-decelerate);
+}
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+Card Hover:
+css
+.card:hover {
+  transform: translateY(-2px) scale(1.005);
+  box-shadow: var(--fs-elevation-3);
+  transition: all 200ms var(--fs-ease-default);
+}
+Progress Ring Completion:
+css
+@keyframes ring-complete {
+  0% { stroke-dashoffset: 100; }
+  100% { stroke-dashoffset: 0; }
+}
+Staggered List Entrance:
+css
+.list-item {
+  animation: slideIn 300ms var(--fs-ease-decelerate) both;
+}
+.list-item:nth-child(1) { animation-delay: 0ms; }
+.list-item:nth-child(2) { animation-delay: 50ms; }
+.list-item:nth-child(3) { animation-delay: 100ms; }
+/* ... */
+8. ICONOGRAPHY
+8.1 Icon Set
+Primary: Lucide React (or equivalent) — clean, consistent, macOS-native feel
+Size Scale: 16px (small), 20px (default), 24px (large), 32px (hero)
+Stroke Width: 1.5px for default, 2px for emphasis
+8.2 Icon Mapping (Navigation & Actions)
+Table
+Icon	Name	Usage
+☀️	Sun / Moon	Theme toggle
+📅	Calendar	Today view, date picker
+🎯	Target	Goals section
+🔭	Telescope	Long-term vision
+📊	BarChart3	Analytics
+⚙️	Settings	Settings
+➕	Plus	Add new item
+✓	Check	Complete task
+✕	X	Close, delete
+🏠	Home	Dashboard
+🔥	Flame	Streak counter
+⏰	Clock	Time blocks
+📝	Pencil	Edit
+📌	Pin	Pin priority
+🗑️	Trash2	Delete
+📤	Upload	Export
+📥	Download	Import
+9. COMPONENTS
+9.1 Buttons
+Primary Button
+css
+.btn-primary {
+  background: var(--fs-color-brand-gradient);
+  color: var(--fs-color-text-inverse);
+  padding: 10px 20px;
+  border-radius: var(--fs-radius-md);
+  font-size: var(--fs-type-body-sm);
+  font-weight: var(--fs-weight-semibold);
+  border: none;
+  cursor: pointer;
+  transition: all 150ms var(--fs-ease-default);
+  box-shadow: var(--fs-elevation-2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--fs-elevation-3);
+  filter: brightness(1.05);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: var(--fs-elevation-1);
+}
+
+.btn-primary:focus-visible {
+  outline: 2px solid var(--fs-color-focus);
+  outline-offset: 2px;
+}
+Secondary Button
+css
+.btn-secondary {
+  background: var(--fs-color-surface-secondary);
+  color: var(--fs-color-text-primary);
+  border: 1px solid var(--fs-color-surface-glass-border);
+  /* ...same sizing as primary */
+}
+
+.btn-secondary:hover {
+  background: var(--fs-color-surface-tertiary);
+}
+Ghost Button
+css
+.btn-ghost {
+  background: transparent;
+  color: var(--fs-color-text-secondary);
+  border: none;
+}
+
+.btn-ghost:hover {
+  background: var(--fs-color-surface-secondary);
+  color: var(--fs-color-text-primary);
+}
+Icon Button
+css
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--fs-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--fs-color-text-secondary);
+  border: none;
+  cursor: pointer;
+}
+
+.btn-icon:hover {
+  background: var(--fs-color-surface-secondary);
+  color: var(--fs-color-text-primary);
+}
+Traffic Light Buttons (macOS Window Controls)
+css
+.traffic-light {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+}
+
+.traffic-light.close { background: #FF5F57; }
+.traffic-light.minimize { background: #FFBD2E; }
+.traffic-light.maximize { background: #28CA41; }
+9.2 Inputs
+Text Input
+css
+.input-text {
+  background: var(--fs-color-surface-primary);
+  border: 1px solid var(--fs-color-surface-glass-border);
+  border-radius: var(--fs-radius-md);
+  padding: 10px 14px;
+  font-size: var(--fs-type-body);
+  color: var(--fs-color-text-primary);
+  transition: border-color 150ms, box-shadow 150ms;
+}
+
+.input-text:focus {
+  border-color: var(--fs-color-brand-primary);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+  outline: none;
+}
+
+.input-text::placeholder {
+  color: var(--fs-color-text-tertiary);
+}
+Textarea (Quick Capture)
+css
+.textarea {
+  /* Same as input-text */
+  min-height: 120px;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.6;
+}
+9.3 Cards
+Standard Card
+css
+.card {
+  background: var(--fs-color-surface-elevated);
+  border: 1px solid var(--fs-color-surface-glass-border);
+  border-radius: var(--fs-radius-lg);
+  padding: var(--fs-space-5);
+  box-shadow: var(--fs-elevation-1);
+  transition: all 200ms var(--fs-ease-default);
+}
+
+.card:hover {
+  box-shadow: var(--fs-elevation-2);
+  transform: translateY(-1px);
+}
+Glass Card (Premium)
+css
+.card-glass {
+  background: var(--fs-color-surface-glass);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--fs-color-surface-glass-border);
+  border-radius: var(--fs-radius-lg);
+  padding: var(--fs-space-5);
+}
+Goal Card (Kanban)
+css
+.card-goal {
+  /* Extends .card */
+  border-left: 3px solid var(--fs-color-category-career); /* dynamic per category */
+  cursor: grab;
+}
+
+.card-goal:active {
+  cursor: grabbing;
+  transform: rotate(2deg) scale(1.02);
+  box-shadow: var(--fs-elevation-4);
+}
+9.4 Badges & Tags
+css
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--fs-radius-full);
+  font-size: var(--fs-type-caption);
+  font-weight: var(--fs-weight-medium);
+}
+
+.badge-priority-high {
+  background: rgba(255, 59, 48, 0.12);
+  color: var(--fs-color-danger);
+}
+
+.badge-priority-medium {
+  background: rgba(255, 149, 0, 0.12);
+  color: var(--fs-color-warning);
+}
+
+.badge-priority-low {
+  background: rgba(52, 199, 89, 0.12);
+  color: var(--fs-color-success);
+}
+
+.badge-category {
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--fs-color-brand-primary);
+}
+9.5 Progress Ring
+css
+.progress-ring {
+  width: 48px;
+  height: 48px;
+}
+
+.progress-ring-circle {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+.progress-ring-bg {
+  stroke: var(--fs-color-surface-tertiary);
+}
+
+.progress-ring-fill {
+  stroke: var(--fs-color-brand-primary);
+  transition: stroke-dashoffset 600ms var(--fs-ease-decelerate);
+}
+9.6 Modals & Drawers
+css
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: var(--fs-z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 200ms var(--fs-ease-decelerate);
+}
+
+.modal-content {
+  background: var(--fs-color-surface-elevated);
+  border-radius: var(--fs-radius-xl);
+  padding: var(--fs-space-6);
+  box-shadow: var(--fs-elevation-4);
+  max-width: 560px;
+  width: 90%;
+  animation: slideUp 300ms var(--fs-ease-spring);
+}
+9.7 Sidebar Navigation
+css
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  background: var(--fs-color-surface-secondary);
+  border-right: 1px solid var(--fs-color-surface-glass-border);
+  padding: var(--fs-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--fs-space-2);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--fs-space-3);
+  padding: 10px 14px;
+  border-radius: var(--fs-radius-md);
+  color: var(--fs-color-text-secondary);
+  font-size: var(--fs-type-body-sm);
+  font-weight: var(--fs-weight-medium);
+  cursor: pointer;
+  transition: all 150ms var(--fs-ease-default);
+}
+
+.nav-item:hover {
+  background: var(--fs-color-surface-tertiary);
+  color: var(--fs-color-text-primary);
+}
+
+.nav-item.active {
+  background: var(--fs-color-brand-primary);
+  color: var(--fs-color-text-inverse);
+  box-shadow: var(--fs-elevation-2);
+}
+
+.nav-item.active svg {
+  color: currentColor;
+}
+9.8 Toggle Switch
+css
+.toggle {
+  width: 44px;
+  height: 24px;
+  background: var(--fs-color-surface-tertiary);
+  border-radius: var(--fs-radius-full);
+  position: relative;
+  cursor: pointer;
+  transition: background 200ms;
+}
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 200ms var(--fs-ease-spring);
+  box-shadow: var(--fs-elevation-1);
+}
+
+.toggle:checked {
+  background: var(--fs-color-brand-primary);
+}
+
+.toggle:checked::after {
+  transform: translateX(20px);
+}
+9.9 Timeline Item
+css
+.timeline-item {
+  display: flex;
+  gap: var(--fs-space-4);
+  position: relative;
+  padding-bottom: var(--fs-space-6);
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 24px;
+  bottom: 0;
+  width: 2px;
+  background: var(--fs-color-surface-tertiary);
+}
+
+.timeline-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--fs-color-brand-primary);
+  border: 3px solid var(--fs-color-surface-base);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.timeline-content {
+  flex: 1;
+}
+10. APP MODULES & PATTERNS
+10.1 Application Shell
+plain
+┌─────────────────────────────────────────────────────────────┐
+│  ● ○ ○  FocusOS                              [Search] [👤]  │  ← Title Bar (40px)
+├────────┬────────────────────────────────────────────────────┤
+│        │                                                    │
+│  NAV   │              MAIN CONTENT AREA                     │
+│  (260px)│                                                    │
+│        │                                                    │
+│  Today │                                                    │
+│  Goals │                                                    │
+│  Vision│                                                    │
+│  Year  │                                                    │
+│  ───── │                                                    │
+│  Sett. │                                                    │
+│        │                                                    │
+└────────┴────────────────────────────────────────────────────┘
+Title Bar: 40px height, glass-panel style, contains traffic lights (left), app name (center), search + profile (right).
+Sidebar: 260px width, collapses to 72px (icons only) on tablet, becomes bottom tab bar on mobile.
+Main Content: Fluid width, padding: var(--fs-space-6).
+10.2 Today View Pattern
+Layout: Three-column grid (1fr 1.6fr 1fr) with 24px gaps.
+Morning Brief Card (Left):
+Glass card with gradient top border
+Shows: Date, weather-style greeting, Top 3 priorities (draggable from Goals)
+Each priority: checkbox + text + category dot
+Time Block Schedule (Center):
+Vertical timeline from 05:00 to 23:00
+30-minute increments, each row 48px height
+Current time indicator: horizontal line with pulsing dot
+Time blocks: rounded rectangles with category color left border
+Drag-and-drop zone for each time slot
+Hover: subtle highlight, click to add/edit
+Quick Capture (Right):
+Glass textarea for brain dumps
+Auto-expanding checklist below
+"Add to Goals" quick action
+10.3 Short-Term Goals (Kanban)
+Layout: Horizontal scrollable columns.
+Columns:
+Backlog — Ideas, future tasks
+In Progress — Active work (max 3 items recommended)
+Review — Completed, awaiting reflection
+Done — Archived, contributes to analytics
+Card Anatomy:
+plain
+┌─────────────────────────────┐
+│ [● Career]      [🔥 High]   │  ← Category badge + Priority
+│                             │
+│  Launch portfolio website   │  ← Title
+│                             │
+│  Due: Aug 15                │  ← Meta row
+│  [████████░░] 80%           │  ← Progress bar
+│                             │
+│  [Edit] [🗑️]                │  ← Actions (hover-only)
+└─────────────────────────────┘
+Interactions:
+Drag card between columns
+Inline edit on double-click
+Progress bar updates animate width
+Moving to "Done" triggers confetti + streak update
+10.4 Long-Term Vision (Vision Wall)
+Layout: Masonry grid of pillar cards.
+Pillar Card:
+plain
+┌─────────────────────────────┐
+│  [Icon]  Career             │  ← Header with category color
+│  ───────────────────────────│
+│  5-Year Vision:             │
+│  "Become a senior product   │
+│   designer at a FAANG"      │
+│                             │
+│  Milestones:                │
+│  ● Q1 2026 — Portfolio      │
+│  ○ Q3 2026 — Case studies   │
+│  ○ Q1 2027 — Apply          │
+│                             │
+│  [View Timeline →]          │
+└─────────────────────────────┘
+Timeline View (Expanded):
+Horizontal timeline with quarterly checkpoints
+Vertical connection lines
+Completed milestones: filled dot + strikethrough
+Upcoming: hollow dot + active text
+Click milestone to link to short-term goals
+10.5 Yearly Analytics (Insights)
+Layout: Dashboard grid with varying card sizes.
+Heatmap Section:
+53 columns (weeks) × 7 rows (days) = 371 squares
+Square size: 12px with 3px gap
+Tooltip on hover: "Aug 2 — 4 tasks completed"
+Color intensity based on daily completion rate
+Charts:
+Line Chart: Monthly goal completion % (smooth curves, brand gradient fill)
+Radar Chart: 5 life pillars, current balance vs. target
+Bar Chart: Weekly task distribution by category
+Streak Counter:
+Large display number with flame icon
+"Current: 12 days" / "Best: 45 days"
+Animated counter on load
+Achievement Timeline:
+Vertical timeline with milestone cards
+Each card: date, title, description, category icon
+Filterable by category and year
+11. DATA VISUALIZATION
+11.1 Chart Styling
+css
+.chart-container {
+  background: var(--fs-color-surface-elevated);
+  border-radius: var(--fs-radius-lg);
+  padding: var(--fs-space-5);
+}
+
+.chart-line {
+  stroke: var(--fs-color-brand-primary);
+  stroke-width: 2.5;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chart-area-fill {
+  fill: url(#brandGradient);
+  fill-opacity: 0.15;
+}
+
+.chart-grid {
+  stroke: var(--fs-color-surface-glass-border);
+  stroke-width: 0.5;
+}
+
+.chart-axis-text {
+  font-size: var(--fs-type-caption);
+  fill: var(--fs-color-text-tertiary);
+}
+
+.chart-tooltip {
+  background: var(--fs-color-surface-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--fs-color-surface-glass-border);
+  border-radius: var(--fs-radius-md);
+  padding: 8px 12px;
+  font-size: var(--fs-type-caption);
+  color: var(--fs-color-text-primary);
+  box-shadow: var(--fs-elevation-3);
+}
+11.2 Heatmap Specs
+Cell size: 12px × 12px
+Gap: 3px
+Border radius: 2px
+Color scale: 5 levels (see Color System §2.6)
+Empty cells: Level 0 color
+Tooltip delay: 200ms
+12. ACCESSIBILITY
+12.1 Color Contrast
+All text on backgrounds must meet WCAG AA (4.5:1 for normal text, 3:1 for large text)
+Interactive elements must have visible focus indicators
+Never rely on color alone to convey meaning — always pair with icons or text labels
+12.2 Focus Management
+css
+:focus-visible {
+  outline: 2px solid var(--fs-color-focus);
+  outline-offset: 2px;
+  border-radius: var(--fs-radius-sm);
+}
+
+/* Remove default outline, replace with custom */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+12.3 Motion Preferences
+css
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+12.4 Screen Reader Support
+All icons must have aria-label or be hidden with aria-hidden="true" + descriptive text
+Modal traps focus and announces via aria-live="polite"
+Progress rings use role="progressbar" with aria-valuenow
+Drag-and-drop provides keyboard alternatives
+13. RESPONSIVE BEHAVIOR
+13.1 Breakpoints
+Table
+Name	Width	Layout Changes
+Mobile	< 768px	Bottom tab bar, single column, stacked cards
+Tablet	768px – 1279px	Collapsible sidebar (icons), 2-column grid
+Desktop	1280px – 1535px	Full sidebar, 3-column today view
+Wide	≥ 1536px	Full sidebar, spacious 3-column, max-width container
+13.2 Mobile Adaptations
+Sidebar: Becomes bottom tab bar (64px height, 5 icons)
+Today View: Single column, time blocks become horizontal scrollable
+Kanban: Single column with swipeable cards or dropdown column selector
+Vision Wall: Single column cards, timeline becomes vertical
+Analytics: Charts stack vertically, heatmap scrolls horizontally
+13.3 Touch Targets
+All interactive elements: minimum 44px × 44px touch target
+Buttons: minimum 48px height
+Card gaps: minimum 16px for easy tapping
+🎯 IMPLEMENTATION CHECKLIST
+Before shipping, verify:
+[ ] All colors have dark mode equivalents
+[ ] Typography scale renders correctly at all breakpoints
+[ ] Glass panels have fallback for browsers without backdrop-filter
+[ ] All animations respect prefers-reduced-motion
+[ ] Focus states are visible and logical
+[ ] localStorage persists data correctly
+[ ] JSON export/import works
+[ ] Keyboard shortcuts are documented
+[ ] Touch targets meet minimum size
+[ ] Charts are responsive and accessible

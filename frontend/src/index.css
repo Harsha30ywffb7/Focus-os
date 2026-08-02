@@ -1,0 +1,639 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* 2.1 Brand Colors */
+    --fs-color-brand-primary: hsl(245, 79%, 58%);
+    --fs-color-brand-secondary: hsl(263, 70%, 50%);
+    --fs-color-brand-gradient: linear-gradient(135deg, hsl(245, 79%, 58%), hsl(263, 70%, 50%));
+
+    /* 2.2 Surface Colors (Light Mode Default) */
+    --fs-color-surface-base: #FFFFFF;
+    --fs-color-surface-elevated: #F5F5F7;
+    --fs-color-surface-primary: #FFFFFF;
+    --fs-color-surface-secondary: #F0F0F2;
+    --fs-color-surface-tertiary: #E8E8ED;
+    --fs-color-surface-glass: rgba(255, 255, 255, 0.72);
+    --fs-color-surface-glass-border: rgba(0, 0, 0, 0.08);
+
+    /* 2.3 Text Colors */
+    --fs-color-text-primary: #1D1D1F;
+    --fs-color-text-secondary: #6E6E73;
+    --fs-color-text-tertiary: #86868B;
+    --fs-color-text-inverse: #FFFFFF;
+    --fs-color-text-brand: hsl(245, 79%, 58%);
+
+    /* 2.4 Semantic Colors */
+    --fs-color-success: #34C759;
+    --fs-color-warning: #FF9500;
+    --fs-color-danger: #FF3B30;
+    --fs-color-info: #007AFF;
+    --fs-color-focus: hsl(245, 79%, 58%);
+
+    /* 2.5 Goal Category Colors */
+    --fs-color-category-career: #5856D6;
+    --fs-color-category-health: #FF2D55;
+    --fs-color-category-finance: #34C759;
+    --fs-color-category-learning: #FF9500;
+    --fs-color-category-relations: #AF52DE;
+
+    /* 2.6 Heatmap Scale */
+    --fs-heatmap-l0: #E5E5EA;
+    --fs-heatmap-l1: #C7D2FE;
+    --fs-heatmap-l2: #818CF8;
+    --fs-heatmap-l3: #6366F1;
+    --fs-heatmap-l4: #4338CA;
+
+    /* 3. Typography Tokens */
+    --fs-font-primary: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+    --fs-font-mono: 'SF Mono', Menlo, Monaco, Consolas, monospace;
+
+    --fs-type-display: 2.5rem;   /* 40px */
+    --fs-type-h1: 2rem;         /* 32px */
+    --fs-type-h2: 1.5rem;       /* 24px */
+    --fs-type-h3: 1.25rem;      /* 20px */
+    --fs-type-h4: 1.125rem;     /* 18px */
+    --fs-type-body: 1rem;       /* 16px */
+    --fs-type-body-sm: 0.875rem;/* 14px */
+    --fs-type-caption: 0.75rem; /* 12px */
+    --fs-type-overline: 0.6875rem; /* 11px */
+
+    --fs-weight-regular: 400;
+    --fs-weight-medium: 500;
+    --fs-weight-semibold: 600;
+    --fs-weight-bold: 700;
+
+    /* 4. Spacing Scale */
+    --fs-space-1: 4px;
+    --fs-space-2: 8px;
+    --fs-space-3: 12px;
+    --fs-space-4: 16px;
+    --fs-space-5: 20px;
+    --fs-space-6: 24px;
+    --fs-space-8: 32px;
+    --fs-space-10: 40px;
+    --fs-space-12: 48px;
+    --fs-space-16: 64px;
+
+    /* 4.3 Z-Index Scale */
+    --fs-z-base: 0;
+    --fs-z-elevated: 10;
+    --fs-z-sticky: 100;
+    --fs-z-dropdown: 200;
+    --fs-z-modal: 300;
+    --fs-z-toast: 400;
+
+    /* 5. Elevation Shadows */
+    --fs-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --fs-elevation-2: 0 2px 8px rgba(0, 0, 0, 0.06);
+    --fs-elevation-3: 0 4px 16px rgba(0, 0, 0, 0.08);
+    --fs-elevation-4: 0 8px 32px rgba(0, 0, 0, 0.12);
+    --fs-elevation-glow: 0 0 20px rgba(99, 102, 241, 0.15);
+
+    /* 6. Radius Scale */
+    --fs-radius-sm: 6px;
+    --fs-radius-md: 10px;
+    --fs-radius-lg: 14px;
+    --fs-radius-xl: 18px;
+    --fs-radius-full: 9999px;
+
+    /* Border Widths */
+    --fs-border-thin: 0.5px;
+    --fs-border-default: 1px;
+    --fs-border-thick: 2px;
+
+    /* 7. Motion Tokens */
+    --fs-motion-instant: 0ms;
+    --fs-motion-fast: 150ms;
+    --fs-motion-normal: 250ms;
+    --fs-motion-slow: 400ms;
+    --fs-motion-dramatic: 600ms;
+
+    --fs-ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+    --fs-ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+    --fs-ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
+    --fs-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .dark {
+    /* 2.1 Brand Colors Dark Override */
+    --fs-color-brand-primary: hsl(245, 79%, 65%);
+    --fs-color-brand-secondary: hsl(263, 70%, 60%);
+    --fs-color-brand-gradient: linear-gradient(135deg, hsl(245, 79%, 65%), hsl(263, 70%, 60%));
+
+    /* 2.2 Surface Colors Dark */
+    --fs-color-surface-base: #0A0A0F;
+    --fs-color-surface-elevated: #1C1C1E;
+    --fs-color-surface-primary: #2C2C2E;
+    --fs-color-surface-secondary: #3A3A3C;
+    --fs-color-surface-tertiary: #48484A;
+    --fs-color-surface-glass: rgba(28, 28, 30, 0.72);
+    --fs-color-surface-glass-border: rgba(255, 255, 255, 0.08);
+
+    /* 2.3 Text Colors Dark */
+    --fs-color-text-primary: #F5F5F7;
+    --fs-color-text-secondary: #A1A1A6;
+    --fs-color-text-tertiary: #8E8E93;
+    --fs-color-text-inverse: #0A0A0F;
+    --fs-color-text-brand: hsl(245, 79%, 65%);
+
+    /* 2.4 Semantic Colors Dark */
+    --fs-color-success: #30D158;
+    --fs-color-warning: #FF9F0A;
+    --fs-color-danger: #FF453A;
+    --fs-color-info: #0A84FF;
+    --fs-color-focus: hsl(245, 79%, 65%);
+
+    /* 2.5 Goal Category Colors Dark */
+    --fs-color-category-career: #5E5CE6;
+    --fs-color-category-health: #FF375F;
+    --fs-color-category-finance: #30D158;
+    --fs-color-category-learning: #FF9F0A;
+    --fs-color-category-relations: #BF5AF2;
+
+    /* 2.6 Heatmap Scale Dark */
+    --fs-heatmap-l0: #2C2C2E;
+    --fs-heatmap-l1: #312E81;
+    --fs-heatmap-l2: #4338CA;
+    --fs-heatmap-l3: #6366F1;
+    --fs-heatmap-l4: #818CF8;
+
+    /* Elevation Dark Shadows */
+    --fs-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --fs-elevation-2: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --fs-elevation-3: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --fs-elevation-4: 0 8px 32px rgba(0, 0, 0, 0.6);
+    --fs-elevation-glow: 0 0 20px rgba(99, 102, 241, 0.25);
+  }
+
+  body {
+    background-color: var(--fs-color-surface-base);
+    color: var(--fs-color-text-primary);
+    font-family: var(--fs-font-primary);
+    min-height: 100vh;
+    transition: background-color var(--fs-motion-normal) var(--fs-ease-default),
+                color var(--fs-motion-normal) var(--fs-ease-default);
+  }
+
+  ::selection {
+    background-color: var(--fs-color-brand-primary) !important;
+    color: #ffffff !important;
+  }
+
+  ::-moz-selection {
+    background-color: var(--fs-color-brand-primary) !important;
+    color: #ffffff !important;
+  }
+}
+
+/* 5.2 Glassmorphism & Panel Classes */
+.glass-panel {
+  background: var(--fs-color-surface-glass);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: var(--fs-border-default) solid var(--fs-color-surface-glass-border);
+}
+
+/* Glass fallback for browsers without backdrop-filter */
+@supports not (backdrop-filter: blur(20px)) {
+  .glass-panel, .card-glass, .mac-glass {
+    background: var(--fs-color-surface-elevated);
+  }
+}
+
+/* 9.1 Component Classes */
+.btn-primary {
+  background: var(--fs-color-brand-gradient);
+  color: var(--fs-color-text-inverse);
+  padding: 10px 20px;
+  border-radius: var(--fs-radius-md);
+  font-size: var(--fs-type-body-sm);
+  font-weight: var(--fs-weight-semibold);
+  border: none;
+  cursor: pointer;
+  min-height: 44px;
+  transition: all var(--fs-motion-fast) var(--fs-ease-default);
+  box-shadow: var(--fs-elevation-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--fs-space-2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--fs-elevation-3);
+  filter: brightness(1.05);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: var(--fs-elevation-1);
+}
+
+.btn-primary:focus-visible, :focus-visible {
+  outline: 2px solid var(--fs-color-focus);
+  outline-offset: 2px;
+  border-radius: var(--fs-radius-sm);
+}
+
+.btn-secondary {
+  background: var(--fs-color-surface-secondary);
+  color: var(--fs-color-text-primary);
+  border: var(--fs-border-default) solid var(--fs-color-surface-glass-border);
+  padding: 10px 20px;
+  border-radius: var(--fs-radius-md);
+  font-size: var(--fs-type-body-sm);
+  font-weight: var(--fs-weight-semibold);
+  cursor: pointer;
+  min-height: 44px;
+  transition: all var(--fs-motion-fast) var(--fs-ease-default);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--fs-space-2);
+}
+
+.btn-secondary:hover {
+  background: var(--fs-color-surface-tertiary);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--fs-color-text-secondary);
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--fs-radius-md);
+  font-size: var(--fs-type-body-sm);
+  font-weight: var(--fs-weight-medium);
+  cursor: pointer;
+  min-height: 44px;
+  transition: all var(--fs-motion-fast) var(--fs-ease-default);
+}
+
+.btn-ghost:hover {
+  background: var(--fs-color-surface-secondary);
+  color: var(--fs-color-text-primary);
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--fs-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--fs-color-text-secondary);
+  border: none;
+  cursor: pointer;
+  transition: all var(--fs-motion-fast) var(--fs-ease-default);
+}
+
+.btn-icon:hover {
+  background: var(--fs-color-surface-secondary);
+  color: var(--fs-color-text-primary);
+}
+
+/* macOS Window Traffic Lights */
+.traffic-light {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+}
+.traffic-light.close { background: #FF5F57; }
+.traffic-light.minimize { background: #FFBD2E; }
+.traffic-light.maximize { background: #28CA41; }
+
+/* 9.2 Inputs */
+.input-text {
+  background: var(--fs-color-surface-primary);
+  border: var(--fs-border-default) solid var(--fs-color-surface-glass-border);
+  border-radius: var(--fs-radius-md);
+  padding: 10px 14px;
+  font-size: var(--fs-type-body);
+  color: var(--fs-color-text-primary);
+  min-height: 44px;
+  transition: border-color var(--fs-motion-fast), box-shadow var(--fs-motion-fast);
+}
+
+.input-text:focus {
+  border-color: var(--fs-color-brand-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  outline: none;
+}
+
+.input-text::placeholder {
+  color: var(--fs-color-text-tertiary);
+}
+
+.textarea {
+  background: var(--fs-color-surface-primary);
+  border: var(--fs-border-default) solid var(--fs-color-surface-glass-border);
+  border-radius: var(--fs-radius-md);
+  padding: 10px 14px;
+  font-size: var(--fs-type-body);
+  color: var(--fs-color-text-primary);
+  min-height: 120px;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.6;
+}
+
+.textarea:focus {
+  border-color: var(--fs-color-brand-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  outline: none;
+}
+
+/* 9.3 Cards */
+.card {
+  background: var(--fs-color-surface-elevated);
+  border: var(--fs-border-default) solid var(--fs-color-surface-glass-border);
+  border-radius: var(--fs-radius-lg);
+  padding: var(--fs-space-5);
+  box-shadow: var(--fs-elevation-1);
+  transition: all var(--fs-motion-fast) var(--fs-ease-default);
+}
+
+.card:hover {
+  box-shadow: var(--fs-elevation-2);
+  transform: translateY(-2px) scale(1.005);
+}
+
+.card-glass {
+  background: var(--fs-color-surface-glass);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: var(--fs-border-default) solid var(--fs-color-surface-glass-border);
+  border-radius: var(--fs-radius-lg);
+  padding: var(--fs-space-5);
+}
+
+.card-goal {
+  background: var(--fs-color-surface-elevated);
+  border: var(--fs-border-default) solid var(--fs-color-surface-glass-border);
+  border-radius: var(--fs-radius-lg);
+  padding: var(--fs-space-4);
+  border-left: 3px solid var(--fs-color-category-career);
+  cursor: grab;
+  transition: all var(--fs-motion-fast) var(--fs-ease-default);
+}
+
+.card-goal:active {
+  cursor: grabbing;
+  transform: rotate(2deg) scale(1.02);
+  box-shadow: var(--fs-elevation-4);
+}
+
+/* 9.4 Badges & Tags */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--fs-radius-full);
+  font-size: var(--fs-type-caption);
+  font-weight: var(--fs-weight-medium);
+}
+
+.badge-priority-high {
+  background: rgba(255, 59, 48, 0.12);
+  color: var(--fs-color-danger);
+}
+
+.badge-priority-medium {
+  background: rgba(255, 149, 0, 0.12);
+  color: var(--fs-color-warning);
+}
+
+.badge-priority-low {
+  background: rgba(52, 199, 89, 0.12);
+  color: var(--fs-color-success);
+}
+
+.badge-category {
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--fs-color-brand-primary);
+}
+
+/* 9.5 Progress Ring */
+.progress-ring {
+  width: 48px;
+  height: 48px;
+}
+
+.progress-ring-circle {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+.progress-ring-bg {
+  stroke: var(--fs-color-surface-tertiary);
+}
+
+.progress-ring-fill {
+  stroke: var(--fs-color-brand-primary);
+  transition: stroke-dashoffset var(--fs-motion-dramatic) var(--fs-ease-decelerate);
+}
+
+/* 9.6 Modals & Overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: var(--fs-z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn var(--fs-motion-fast) var(--fs-ease-decelerate);
+}
+
+.modal-content {
+  background: var(--fs-color-surface-elevated);
+  border-radius: var(--fs-radius-xl);
+  padding: var(--fs-space-6);
+  box-shadow: var(--fs-elevation-4);
+  max-width: 560px;
+  width: 90%;
+  animation: slideUp var(--fs-motion-normal) var(--fs-ease-spring);
+}
+
+/* 9.7 Sidebar */
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  background: var(--fs-color-surface-secondary);
+  border-right: var(--fs-border-default) solid var(--fs-color-surface-glass-border);
+  padding: var(--fs-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--fs-space-2);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  gap: var(--fs-space-3);
+  padding: 10px 14px;
+  border-radius: var(--fs-radius-md);
+  color: var(--fs-color-text-secondary);
+  font-size: var(--fs-type-body-sm);
+  font-weight: var(--fs-weight-medium);
+  min-height: 44px;
+  cursor: pointer;
+  transition: all var(--fs-motion-fast) var(--fs-ease-default);
+}
+
+.nav-item:hover {
+  background: var(--fs-color-surface-tertiary);
+  color: var(--fs-color-text-primary);
+}
+
+.nav-item.active {
+  background: var(--fs-color-brand-primary);
+  color: var(--fs-color-text-inverse);
+  box-shadow: var(--fs-elevation-2);
+}
+
+/* 9.8 Toggle Switch */
+.toggle {
+  width: 44px;
+  height: 24px;
+  background: var(--fs-color-surface-tertiary);
+  border-radius: var(--fs-radius-full);
+  position: relative;
+  cursor: pointer;
+  transition: background var(--fs-motion-fast);
+}
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform var(--fs-motion-fast) var(--fs-ease-spring);
+  box-shadow: var(--fs-elevation-1);
+}
+
+.toggle:checked {
+  background: var(--fs-color-brand-primary);
+}
+
+.toggle:checked::after {
+  transform: translateX(20px);
+}
+
+/* 9.9 Timeline Item */
+.timeline-item {
+  display: flex;
+  gap: var(--fs-space-4);
+  position: relative;
+  padding-bottom: var(--fs-space-6);
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 24px;
+  bottom: 0;
+  width: 2px;
+  background: var(--fs-color-surface-tertiary);
+}
+
+.timeline-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--fs-color-brand-primary);
+  border: 3px solid var(--fs-color-surface-base);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.timeline-content {
+  flex: 1;
+}
+
+/* 11. Chart Styling */
+.chart-container {
+  background: var(--fs-color-surface-elevated);
+  border-radius: var(--fs-radius-lg);
+  padding: var(--fs-space-5);
+}
+
+.chart-line {
+  stroke: var(--fs-color-brand-primary);
+  stroke-width: 2.5;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chart-area-fill {
+  fill: url(#brandGradient);
+  fill-opacity: 0.15;
+}
+
+.chart-grid {
+  stroke: var(--fs-color-surface-glass-border);
+  stroke-width: 0.5;
+}
+
+.chart-axis-text {
+  font-size: var(--fs-type-caption);
+  fill: var(--fs-color-text-tertiary);
+}
+
+.chart-tooltip {
+  background: var(--fs-color-surface-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--fs-color-surface-glass-border);
+  border-radius: var(--fs-radius-md);
+  padding: 8px 12px;
+  font-size: var(--fs-type-caption);
+  color: var(--fs-color-text-primary);
+  box-shadow: var(--fs-elevation-3);
+}
+
+/* Keyframes & Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* 12.3 Reduced Motion Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
