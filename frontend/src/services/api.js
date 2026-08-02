@@ -1,18 +1,16 @@
 const API_BASE_URL = 'http://localhost:3001/api';
 
 export const apiService = {
-  // Check Bun backend health & Supabase connection
+  // 1. HEALTH & HYDRATION
   async checkHealth() {
     try {
       const res = await fetch(`${API_BASE_URL}/health`);
       return await res.json();
     } catch (e) {
-      console.warn('Backend server offline, operating in local offline mode');
       return { status: 'offline', databaseConnected: false };
     }
   },
 
-  // Fetch full state from PostgreSQL
   async fetchState() {
     try {
       const res = await fetch(`${API_BASE_URL}/state`);
@@ -24,36 +22,28 @@ export const apiService = {
     }
   },
 
-  // Sync state to PostgreSQL
-  async syncState(state) {
+  // 2. HABITS API (`/api/habits`)
+  async getHabits() {
     try {
-      const res = await fetch(`${API_BASE_URL}/sync`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(state),
-      });
+      const res = await fetch(`${API_BASE_URL}/habits`);
       return await res.json();
-    } catch (e) {
-      console.warn('Failed to sync to backend', e);
-      return null;
-    }
+    } catch (e) { return []; }
   },
 
-  // GOALS API
-  async addGoal(goal) {
+  async addHabit(habit) {
     try {
-      const res = await fetch(`${API_BASE_URL}/goals`, {
+      const res = await fetch(`${API_BASE_URL}/habits`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(goal)
+        body: JSON.stringify(habit)
       });
       return await res.json();
     } catch (e) { return null; }
   },
 
-  async updateGoal(id, data) {
+  async updateHabit(id, data) {
     try {
-      const res = await fetch(`${API_BASE_URL}/goals/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/habits/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -62,13 +52,20 @@ export const apiService = {
     } catch (e) { return null; }
   },
 
-  async deleteGoal(id) {
+  async deleteHabit(id) {
     try {
-      await fetch(`${API_BASE_URL}/goals/${id}`, { method: 'DELETE' });
+      await fetch(`${API_BASE_URL}/habits/${id}`, { method: 'DELETE' });
     } catch (e) {}
   },
 
-  // TIME BLOCKS API
+  // 3. TIME BLOCKS API (`/api/time-blocks`)
+  async getTimeBlocks() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/time-blocks`);
+      return await res.json();
+    } catch (e) { return []; }
+  },
+
   async addTimeBlock(block) {
     try {
       const res = await fetch(`${API_BASE_URL}/time-blocks`, {
@@ -97,7 +94,14 @@ export const apiService = {
     } catch (e) {}
   },
 
-  // MICRO TASKS API
+  // 4. MICRO TASKS API (`/api/micro-tasks`)
+  async getMicroTasks() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/micro-tasks`);
+      return await res.json();
+    } catch (e) { return []; }
+  },
+
   async addMicroTask(task) {
     try {
       const res = await fetch(`${API_BASE_URL}/micro-tasks`, {
@@ -126,7 +130,130 @@ export const apiService = {
     } catch (e) {}
   },
 
-  // Init DB Schemas
+  // 5. GOALS API (`/api/goals`)
+  async getGoals() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/goals`);
+      return await res.json();
+    } catch (e) { return []; }
+  },
+
+  async addGoal(goal) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/goals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(goal)
+      });
+      return await res.json();
+    } catch (e) { return null; }
+  },
+
+  async updateGoal(id, data) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/goals/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      return await res.json();
+    } catch (e) { return null; }
+  },
+
+  async deleteGoal(id) {
+    try {
+      await fetch(`${API_BASE_URL}/goals/${id}`, { method: 'DELETE' });
+    } catch (e) {}
+  },
+
+  // 6. LIFE PILLARS API (`/api/pillars`)
+  async getPillars() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/pillars`);
+      return await res.json();
+    } catch (e) { return []; }
+  },
+
+  async addPillar(pillar) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/pillars`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pillar)
+      });
+      return await res.json();
+    } catch (e) { return null; }
+  },
+
+  async addPillarMilestone(pillarId, milestone) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/pillars/${pillarId}/milestones`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(milestone)
+      });
+      return await res.json();
+    } catch (e) { return null; }
+  },
+
+  async updatePillarMilestone(milestoneId, data) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/pillars/milestones/${milestoneId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      return await res.json();
+    } catch (e) { return null; }
+  },
+
+  async deletePillarMilestone(milestoneId) {
+    try {
+      await fetch(`${API_BASE_URL}/pillars/milestones/${milestoneId}`, { method: 'DELETE' });
+    } catch (e) {}
+  },
+
+  // 7. QUICK CAPTURE NOTES API (`/api/notes`)
+  async saveNotes(notes) {
+    try {
+      await fetch(`${API_BASE_URL}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes })
+      });
+    } catch (e) {}
+  },
+
+  // 8. DAILY INTENTION API (`/api/intention`)
+  async saveIntention(intention, quote) {
+    try {
+      await fetch(`${API_BASE_URL}/intention`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ intention, quote })
+      });
+    } catch (e) {}
+  },
+
+  // 9. MILESTONE TIMELINE API (`/api/timeline`)
+  async addTimelineItem(item) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/timeline`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(item)
+      });
+      return await res.json();
+    } catch (e) { return null; }
+  },
+
+  async deleteTimelineItem(id) {
+    try {
+      await fetch(`${API_BASE_URL}/timeline/${id}`, { method: 'DELETE' });
+    } catch (e) {}
+  },
+
+  // 10. INIT SCHEMAS
   async initSchemas() {
     try {
       const res = await fetch(`${API_BASE_URL}/db/init`, { method: 'POST' });

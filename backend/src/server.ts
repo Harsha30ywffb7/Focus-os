@@ -57,7 +57,7 @@ const server = Bun.serve({
         }
       }
 
-      // 3. FETCH COMPLETE USER STATE FROM POSTGRESQL
+      // 3. FETCH FULL INITIAL STATE FROM POSTGRESQL (State Hydration)
       if (url.pathname === '/api/state' && method === 'GET') {
         try {
           const habits = await sql`SELECT id, text, completed, icon, streak_count as "streakCount" FROM habits ORDER BY created_at ASC`;
@@ -77,6 +77,8 @@ const server = Bun.serve({
           }
 
           const timeline = await sql`SELECT id, date, title, category, note FROM milestones_timeline ORDER BY date DESC`;
+          const notesResult = await sql`SELECT notes FROM quick_capture_notes ORDER BY updated_at DESC LIMIT 1`;
+          const intentionResult = await sql`SELECT intention, quote_text as text, quote_author as author FROM daily_intentions ORDER BY created_at DESC LIMIT 1`;
 
           return jsonResponse({
             habits,
@@ -84,176 +86,284 @@ const server = Bun.serve({
             microTasks,
             goals,
             pillars,
-            milestonesTimeline: timeline
+            milestonesTimeline: timeline,
+            quickCaptureNotes: notesResult[0]?.notes || '',
+            dailyIntention: intentionResult[0]?.intention || '',
+            quote: intentionResult[0]?.text ? { text: intentionResult[0].text, author: intentionResult[0].author } : undefined
           });
         } catch (err: any) {
           return jsonResponse({ error: 'Failed to fetch state', details: err.message }, 500);
         }
       }
 
-      // 4. SYNC STATE TO POSTGRESQL (Bulk Upsert)
-      if (url.pathname === '/api/sync' && method === 'POST') {
-        try {
-          const body = await req.json();
-          
-          if (body.goals && Array.isArray(body.goals)) {
-            for (const goal of body.goals) {
-              await sql`
-                INSERT INTO goals (id, title, column_name, target_date, progress, category, priority)
-                VALUES (${goal.id}, ${goal.title}, ${goal.column || 'backlog'}, ${goal.targetDate || null}, ${goal.progress || 0}, ${goal.category || 'Product'}, ${goal.priority || 'high'})
-                ON CONFLICT (id) DO UPDATE SET
-                  title = EXCLUDED.title,
-                  column_name = EXCLUDED.column_name,
-                  progress = EXCLUDED.progress;
-              `;
-            }
-          }
+      // =========================================================
+      // DEDICATED TABLE-SPECIFIC RESTful APIS
+      // =========================================================
 
-          if (body.microTasks && Array.isArray(body.microTasks)) {
-            for (const task of body.microTasks) {
-              await sql`
-                INSERT INTO micro_tasks (id, title, completed, priority, category)
-                VALUES (${task.id}, ${task.title}, ${task.completed}, ${task.priority}, ${task.category})
-                ON CONFLICT (id) DO UPDATE SET
-                  title = EXCLUDED.title,
-                  completed = EXCLUDED.completed;
-              `;
-            }
-          }
-
-          return jsonResponse({ message: 'State synced to PostgreSQL successfully' });
-        } catch (err: any) {
-          return jsonResponse({ error: 'Sync failed', details: err.message }, 500);
-        }
-      }
-
-      // 5. REST API: GOALS CRUD
-      if (url.pathname === '/api/goals' && method === 'GET') {
-        const goals = await sql`SELECT * FROM goals ORDER BY created_at DESC`;
-        return jsonResponse(goals);
-      }
-
-      if (url.pathname === '/api/goals' && method === 'POST') {
-        const body = await req.json();
-        const newGoal = await sql`
-          INSERT INTO goals (title, column_name, target_date, category, priority)
-          VALUES (${body.title}, ${body.column || 'backlog'}, ${body.targetDate || null}, ${body.category}, ${body.priority})
-          RETURNING *;
-        `;
-        return jsonResponse(newGoal[0], 201);
-      }
-
-      const matchGoalId = url.pathname.match(/^\/api\/goals\/([a-zA-Z0-9-]+)$/);
-      if (matchGoalId) {
-        const goalId = matchGoalId[1];
-        if (method === 'PUT') {
-          const body = await req.json();
-          const updated = await sql`
-            UPDATE goals
-            SET title = COALESCE(${body.title}, title),
-                column_name = COALESCE(${body.column}, column_name),
-                progress = COALESCE(${body.progress}, progress)
-            WHERE id = ${goalId}
-            RETURNING *;
-          `;
-          return jsonResponse(updated[0] || { message: 'Updated' });
-        }
-        if (method === 'DELETE') {
-          await sql`DELETE FROM goals WHERE id = ${goalId}`;
-          return jsonResponse({ message: 'Deleted' });
-        }
-      }
-
-      // 6. REST API: TIME BLOCKS CRUD
-      if (url.pathname === '/api/time-blocks' && method === 'GET') {
-        const blocks = await sql`SELECT * FROM time_blocks ORDER BY time_slot ASC`;
-        return jsonResponse(blocks);
-      }
-
-      if (url.pathname === '/api/time-blocks' && method === 'POST') {
-        const body = await req.json();
-        const newBlock = await sql`
-          INSERT INTO time_blocks (time_slot, duration_minutes, title, status, category)
-          VALUES (${body.timeSlot}, ${body.durationMinutes || 60}, ${body.title}, ${body.status || 'upcoming'}, ${body.category})
-          RETURNING *;
-        `;
-        return jsonResponse(newBlock[0], 201);
-      }
-
-      const matchTimeBlockId = url.pathname.match(/^\/api\/time-blocks\/([a-zA-Z0-9-]+)$/);
-      if (matchTimeBlockId) {
-        const tbId = matchTimeBlockId[1];
-        if (method === 'PUT') {
-          const body = await req.json();
-          const updated = await sql`
-            UPDATE time_blocks
-            SET status = COALESCE(${body.status}, status),
-                time_slot = COALESCE(${body.timeSlot}, time_slot)
-            WHERE id = ${tbId}
-            RETURNING *;
-          `;
-          return jsonResponse(updated[0] || { message: 'Updated' });
-        }
-        if (method === 'DELETE') {
-          await sql`DELETE FROM time_blocks WHERE id = ${tbId}`;
-          return jsonResponse({ message: 'Deleted' });
-        }
-      }
-
-      // 7. REST API: MICRO TASKS CRUD
-      if (url.pathname === '/api/micro-tasks' && method === 'GET') {
-        const tasks = await sql`SELECT * FROM micro_tasks ORDER BY created_at DESC`;
-        return jsonResponse(tasks);
-      }
-
-      if (url.pathname === '/api/micro-tasks' && method === 'POST') {
-        const body = await req.json();
-        const newTask = await sql`
-          INSERT INTO micro_tasks (title, priority, category)
-          VALUES (${body.title}, ${body.priority || 'medium'}, ${body.category || 'General'})
-          RETURNING *;
-        `;
-        return jsonResponse(newTask[0], 201);
-      }
-
-      const matchMicroTaskId = url.pathname.match(/^\/api\/micro-tasks\/([a-zA-Z0-9-]+)$/);
-      if (matchMicroTaskId) {
-        const taskId = matchMicroTaskId[1];
-        if (method === 'PUT') {
-          const body = await req.json();
-          const updated = await sql`
-            UPDATE micro_tasks
-            SET completed = COALESCE(${body.completed}, completed),
-                title = COALESCE(${body.title}, title)
-            WHERE id = ${taskId}
-            RETURNING *;
-          `;
-          return jsonResponse(updated[0] || { message: 'Updated' });
-        }
-        if (method === 'DELETE') {
-          await sql`DELETE FROM micro_tasks WHERE id = ${taskId}`;
-          return jsonResponse({ message: 'Deleted' });
-        }
-      }
-
-      // 8. REST API: HABITS CRUD
+      // A. HABITS TABLE APIs (`/api/habits`)
       if (url.pathname === '/api/habits' && method === 'GET') {
-        const habits = await sql`SELECT * FROM habits ORDER BY created_at ASC`;
+        const habits = await sql`SELECT id, text, completed, icon, streak_count as "streakCount" FROM habits ORDER BY created_at ASC`;
         return jsonResponse(habits);
       }
 
-      const matchHabitId = url.pathname.match(/^\/api\/habits\/([a-zA-Z0-9-]+)$/);
+      if (url.pathname === '/api/habits' && method === 'POST') {
+        const body = await req.json();
+        const id = body.id || 'h_' + Date.now();
+        const newHabit = await sql`
+          INSERT INTO habits (id, text, completed, icon)
+          VALUES (${id}, ${body.text}, ${body.completed || false}, ${body.icon || 'CheckCircle2'})
+          RETURNING id, text, completed, icon;
+        `;
+        return jsonResponse(newHabit[0], 201);
+      }
+
+      const matchHabitId = url.pathname.match(/^\/api\/habits\/([a-zA-Z0-9_-]+)$/);
       if (matchHabitId) {
         const habitId = matchHabitId[1];
         if (method === 'PUT') {
           const body = await req.json();
           const updated = await sql`
             UPDATE habits
-            SET completed = COALESCE(${body.completed}, completed)
+            SET completed = COALESCE(${body.completed}, completed),
+                text = COALESCE(${body.text}, text)
             WHERE id = ${habitId}
-            RETURNING *;
+            RETURNING id, text, completed, icon;
           `;
           return jsonResponse(updated[0] || { message: 'Updated' });
+        }
+        if (method === 'DELETE') {
+          await sql`DELETE FROM habits WHERE id = ${habitId}`;
+          return jsonResponse({ message: 'Habit deleted' });
+        }
+      }
+
+      // B. TIME BLOCKS TABLE APIs (`/api/time-blocks`)
+      if (url.pathname === '/api/time-blocks' && method === 'GET') {
+        const blocks = await sql`SELECT id, time_slot as "timeSlot", duration_minutes as "durationMinutes", title, status, category FROM time_blocks ORDER BY time_slot ASC`;
+        return jsonResponse(blocks);
+      }
+
+      if (url.pathname === '/api/time-blocks' && method === 'POST') {
+        const body = await req.json();
+        const id = body.id || 'tb_' + Date.now();
+        const newBlock = await sql`
+          INSERT INTO time_blocks (id, time_slot, duration_minutes, title, status, category)
+          VALUES (${id}, ${body.timeSlot}, ${body.durationMinutes || 60}, ${body.title}, ${body.status || 'upcoming'}, ${body.category || 'General'})
+          RETURNING id, time_slot as "timeSlot", duration_minutes as "durationMinutes", title, status, category;
+        `;
+        return jsonResponse(newBlock[0], 201);
+      }
+
+      const matchTimeBlockId = url.pathname.match(/^\/api\/time-blocks\/([a-zA-Z0-9_-]+)$/);
+      if (matchTimeBlockId) {
+        const tbId = matchTimeBlockId[1];
+        if (method === 'PUT') {
+          const body = await req.json();
+          const updated = await sql`
+            UPDATE time_blocks
+            SET status = COALESCE(${body.status ?? null}, status),
+                time_slot = COALESCE(${body.timeSlot ?? null}, time_slot),
+                title = COALESCE(${body.title ?? null}, title)
+            WHERE id = ${tbId}
+            RETURNING id, time_slot as "timeSlot", duration_minutes as "durationMinutes", title, status, category;
+          `;
+          return jsonResponse(updated[0] || { message: 'Updated' });
+        }
+        if (method === 'DELETE') {
+          await sql`DELETE FROM time_blocks WHERE id = ${tbId}`;
+          return jsonResponse({ message: 'Time block deleted' });
+        }
+      }
+
+      // C. MICRO TASKS TABLE APIs (`/api/micro-tasks`)
+      if (url.pathname === '/api/micro-tasks' && method === 'GET') {
+        const tasks = await sql`SELECT id, title, completed, priority, category FROM micro_tasks ORDER BY created_at DESC`;
+        return jsonResponse(tasks);
+      }
+
+      if (url.pathname === '/api/micro-tasks' && method === 'POST') {
+        const body = await req.json();
+        const id = body.id || 'm_' + Date.now();
+        const newTask = await sql`
+          INSERT INTO micro_tasks (id, title, completed, priority, category)
+          VALUES (${id}, ${body.title}, ${body.completed || false}, ${body.priority || 'medium'}, ${body.category || 'General'})
+          RETURNING id, title, completed, priority, category;
+        `;
+        return jsonResponse(newTask[0], 201);
+      }
+
+      const matchMicroTaskId = url.pathname.match(/^\/api\/micro-tasks\/([a-zA-Z0-9_-]+)$/);
+      if (matchMicroTaskId) {
+        const taskId = matchMicroTaskId[1];
+        if (method === 'PUT') {
+          const body = await req.json();
+          const updated = await sql`
+            UPDATE micro_tasks
+            SET completed = COALESCE(${body.completed ?? null}, completed),
+                title = COALESCE(${body.title ?? null}, title),
+                priority = COALESCE(${body.priority ?? null}, priority),
+                category = COALESCE(${body.category ?? null}, category)
+            WHERE id = ${taskId}
+            RETURNING id, title, completed, priority, category;
+          `;
+          return jsonResponse(updated[0] || { message: 'Updated' });
+        }
+        if (method === 'DELETE') {
+          await sql`DELETE FROM micro_tasks WHERE id = ${taskId}`;
+          return jsonResponse({ message: 'Micro task deleted' });
+        }
+      }
+
+      // D. GOALS & SUBTASKS TABLE APIs (`/api/goals`)
+      if (url.pathname === '/api/goals' && method === 'GET') {
+        const goals = await sql`SELECT id, title, column_name as column, target_date as "targetDate", progress, category, priority FROM goals ORDER BY created_at DESC`;
+        for (const goal of goals) {
+          const subtasks = await sql`SELECT id, text, done FROM goal_subtasks WHERE goal_id = ${goal.id}`;
+          goal.subtasks = subtasks;
+        }
+        return jsonResponse(goals);
+      }
+
+      if (url.pathname === '/api/goals' && method === 'POST') {
+        const body = await req.json();
+        const id = body.id || 'g_' + Date.now();
+        const newGoal = await sql`
+          INSERT INTO goals (id, title, column_name, target_date, progress, category, priority)
+          VALUES (${id}, ${body.title}, ${body.column || 'backlog'}, ${body.targetDate || null}, ${body.progress || 0}, ${body.category || 'Product'}, ${body.priority || 'high'})
+          RETURNING id, title, column_name as column, target_date as "targetDate", progress, category, priority;
+        `;
+        return jsonResponse(newGoal[0], 201);
+      }
+
+      const matchGoalId = url.pathname.match(/^\/api\/goals\/([a-zA-Z0-9_-]+)$/);
+      if (matchGoalId) {
+        const goalId = matchGoalId[1];
+        if (method === 'PUT') {
+          const body = await req.json();
+          const updated = await sql`
+            UPDATE goals
+            SET title = COALESCE(${body.title ?? null}, title),
+                column_name = COALESCE(${body.column ?? null}, column_name),
+                progress = COALESCE(${body.progress ?? null}, progress),
+                category = COALESCE(${body.category ?? null}, category),
+                priority = COALESCE(${body.priority ?? null}, priority)
+            WHERE id = ${goalId}
+            RETURNING id, title, column_name as column, target_date as "targetDate", progress, category, priority;
+          `;
+          return jsonResponse(updated[0] || { message: 'Updated' });
+        }
+        if (method === 'DELETE') {
+          await sql`DELETE FROM goals WHERE id = ${goalId}`;
+          return jsonResponse({ message: 'Goal deleted' });
+        }
+      }
+
+      // E. LIFE PILLARS & MILESTONES TABLE APIs (`/api/pillars`)
+      if (url.pathname === '/api/pillars' && method === 'GET') {
+        const pillars = await sql`SELECT id, name, icon, badge, vision, color_from as "colorFrom", color_to as "colorTo" FROM life_pillars`;
+        for (const p of pillars) {
+          const milestones = await sql`SELECT id, year_horizon as year, quarter, title, completed FROM pillar_milestones WHERE pillar_id = ${p.id}`;
+          p.milestones = milestones;
+        }
+        return jsonResponse(pillars);
+      }
+
+      if (url.pathname === '/api/pillars' && method === 'POST') {
+        const body = await req.json();
+        const id = body.id || 'p_' + Date.now();
+        const newPillar = await sql`
+          INSERT INTO life_pillars (id, name, icon, badge, vision, color_from, color_to)
+          VALUES (${id}, ${body.name}, ${body.icon || 'Sparkles'}, ${body.badge || 'General'}, ${body.vision || ''}, ${body.colorFrom || '#6366f1'}, ${body.colorTo || '#8b5cf6'})
+          RETURNING id, name, icon, badge, vision, color_from as "colorFrom", color_to as "colorTo";
+        `;
+        return jsonResponse(newPillar[0], 201);
+      }
+
+      // Add milestone checkpoint to pillar: POST /api/pillars/:id/milestones
+      const matchPillarMilestonesPost = url.pathname.match(/^\/api\/pillars\/([a-zA-Z0-9_-]+)\/milestones$/);
+      if (matchPillarMilestonesPost && method === 'POST') {
+        const pillarId = matchPillarMilestonesPost[1];
+        const body = await req.json();
+        const milestoneId = body.id || 'm_' + Date.now();
+        const newMilestone = await sql`
+          INSERT INTO pillar_milestones (id, pillar_id, year_horizon, quarter, title, completed)
+          VALUES (${milestoneId}, ${pillarId}, ${body.year || '1 Year'}, ${body.quarter || 'Q4 2026'}, ${body.title}, ${body.completed || false})
+          RETURNING id, year_horizon as year, quarter, title, completed;
+        `;
+        return jsonResponse(newMilestone[0], 201);
+      }
+
+      // Update / Delete milestone: PUT or DELETE /api/pillars/milestones/:milestoneId
+      const matchMilestoneId = url.pathname.match(/^\/api\/pillars\/milestones\/([a-zA-Z0-9_-]+)$/);
+      if (matchMilestoneId) {
+        const milestoneId = matchMilestoneId[1];
+        if (method === 'PUT') {
+          const body = await req.json();
+          const updated = await sql`
+            UPDATE pillar_milestones
+            SET completed = COALESCE(${body.completed ?? null}, completed),
+                title = COALESCE(${body.title ?? null}, title)
+            WHERE id = ${milestoneId}
+            RETURNING id, year_horizon as year, quarter, title, completed;
+          `;
+          return jsonResponse(updated[0] || { message: 'Updated' });
+        }
+        if (method === 'DELETE') {
+          await sql`DELETE FROM pillar_milestones WHERE id = ${milestoneId}`;
+          return jsonResponse({ message: 'Milestone deleted' });
+        }
+      }
+
+      // F. QUICK CAPTURE NOTES TABLE API (`/api/notes`)
+      if (url.pathname === '/api/notes' && method === 'GET') {
+        const notes = await sql`SELECT notes FROM quick_capture_notes ORDER BY updated_at DESC LIMIT 1`;
+        return jsonResponse({ notes: notes[0]?.notes || '' });
+      }
+
+      if (url.pathname === '/api/notes' && method === 'POST') {
+        const body = await req.json();
+        await sql`INSERT INTO quick_capture_notes (notes) VALUES (${body.notes})`;
+        return jsonResponse({ message: 'Notes saved' });
+      }
+
+      // G. DAILY INTENTION TABLE API (`/api/intention`)
+      if (url.pathname === '/api/intention' && method === 'GET') {
+        const result = await sql`SELECT intention, quote_text as text, quote_author as author FROM daily_intentions ORDER BY created_at DESC LIMIT 1`;
+        return jsonResponse(result[0] || { intention: '' });
+      }
+
+      if (url.pathname === '/api/intention' && method === 'POST') {
+        const body = await req.json();
+        await sql`
+          INSERT INTO daily_intentions (intention, quote_text, quote_author)
+          VALUES (${body.intention}, ${body.quote?.text || ''}, ${body.quote?.author || ''});
+        `;
+        return jsonResponse({ message: 'Intention saved' });
+      }
+
+      // H. MILESTONES TIMELINE TABLE API (`/api/timeline`)
+      if (url.pathname === '/api/timeline' && method === 'GET') {
+        const timeline = await sql`SELECT id, date, title, category, note FROM milestones_timeline ORDER BY date DESC`;
+        return jsonResponse(timeline);
+      }
+
+      if (url.pathname === '/api/timeline' && method === 'POST') {
+        const body = await req.json();
+        const id = body.id || 'mt_' + Date.now();
+        const newEntry = await sql`
+          INSERT INTO milestones_timeline (id, date, title, category, note)
+          VALUES (${id}, ${body.date}, ${body.title}, ${body.category || 'General'}, ${body.note || ''})
+          RETURNING id, date, title, category, note;
+        `;
+        return jsonResponse(newEntry[0], 201);
+      }
+
+      const matchTimelineId = url.pathname.match(/^\/api\/timeline\/([a-zA-Z0-9_-]+)$/);
+      if (matchTimelineId) {
+        const tId = matchTimelineId[1];
+        if (method === 'DELETE') {
+          await sql`DELETE FROM milestones_timeline WHERE id = ${tId}`;
+          return jsonResponse({ message: 'Timeline item deleted' });
         }
       }
 

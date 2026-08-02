@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFocus } from '../context/FocusContext';
 import { 
   Target, 
@@ -18,9 +18,17 @@ import {
 } from 'lucide-react';
 
 export const GoalsView = () => {
-  const { state, updateGoalColumn, updateGoalProgress, deleteGoal, toggleMilestone, addMilestone } = useFocus();
-  const [activeTab, setActiveTab] = useState('kanban');
+  const { state, updateGoalColumn, updateGoalProgress, deleteGoal, toggleMilestone, addMilestone, deleteMilestone } = useFocus();
+  const [activeTab, setActiveTab] = useState(state.activeView === 'vision' ? 'vision' : 'kanban');
   const [selectedPillar, setSelectedPillar] = useState(null);
+
+  useEffect(() => {
+    if (state.activeView === 'vision') {
+      setActiveTab('vision');
+    } else if (state.activeView === 'goals') {
+      setActiveTab('kanban');
+    }
+  }, [state.activeView]);
 
   const [newMilestoneTitle, setNewMilestoneTitle] = useState('');
   const [newMilestoneYear, setNewMilestoneYear] = useState('1 Year');
@@ -335,18 +343,33 @@ export const GoalsView = () => {
                           <span className="badge badge-category">{m.year}</span>
                           <span className="text-xs font-mono text-[var(--fs-color-text-secondary)]">{m.quarter}</span>
                         </div>
-                        <button
-                          onClick={() => {
-                            toggleMilestone(selectedPillar.id, m.id);
-                            setSelectedPillar(prev => ({
-                              ...prev,
-                              milestones: prev.milestones.map(item => item.id === m.id ? { ...item, completed: !item.completed } : item)
-                            }));
-                          }}
-                          className="text-xs font-semibold text-[var(--fs-color-brand-primary)]"
-                        >
-                          {m.completed ? 'Achieved ✓' : 'Mark Complete'}
-                        </button>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => {
+                              toggleMilestone(selectedPillar.id, m.id);
+                              setSelectedPillar(prev => ({
+                                ...prev,
+                                milestones: prev.milestones.map(item => item.id === m.id ? { ...item, completed: !item.completed } : item)
+                              }));
+                            }}
+                            className="text-xs font-semibold text-[var(--fs-color-brand-primary)]"
+                          >
+                            {m.completed ? 'Achieved ✓' : 'Mark Complete'}
+                          </button>
+                          <button
+                            onClick={() => {
+                              deleteMilestone(selectedPillar.id, m.id);
+                              setSelectedPillar(prev => ({
+                                ...prev,
+                                milestones: prev.milestones.filter(item => item.id !== m.id)
+                              }));
+                            }}
+                            className="p-1 rounded text-[var(--fs-color-text-tertiary)] hover:text-[var(--fs-color-danger)] transition-colors ml-1"
+                            title="Delete milestone"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                       <h4 className={`text-sm font-semibold mt-2 ${m.completed ? 'line-through' : ''}`}>
                         {m.title}

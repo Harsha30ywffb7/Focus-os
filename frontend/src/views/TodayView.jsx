@@ -21,19 +21,36 @@ export const TodayView = () => {
     state, 
     updateDailyIntention, 
     toggleHabit, 
+    addHabit,
+    deleteHabit,
     addTimeBlock,
     updateTimeBlockStatus, 
     deleteTimeBlock,
     updateNotes, 
     addMicroTask, 
     toggleMicroTask, 
-    deleteMicroTask 
+    deleteMicroTask,
+    updateGoalColumn,
+    deleteGoal
   } = useFocus();
 
+  const [newHabitText, setNewHabitText] = useState('');
   const [newMicroText, setNewMicroText] = useState('');
   const [newMicroCategory, setNewMicroCategory] = useState('Engineering');
   const [newMicroPriority, setNewMicroPriority] = useState('medium');
   const [draggedTimeBlock, setDraggedTimeBlock] = useState(null);
+
+  // Dynamically derive Top 3 Priorities from real DB tasks & goals
+  const topPrioritiesList = [
+    ...state.microTasks
+      .filter(m => !m.completed)
+      .map(m => ({ id: m.id, title: m.title, category: m.category || 'Task', isTask: true, priority: m.priority })),
+    ...state.goals
+      .filter(g => g.column !== 'complete')
+      .map(g => ({ id: g.id, title: g.title, category: g.category || 'Goal', isTask: false, priority: g.priority }))
+  ]
+  .sort((a, b) => (a.priority === 'high' ? -1 : 1))
+  .slice(0, 3);
 
   const timeSlots = [];
   for (let hour = 5; hour <= 23; hour++) {
@@ -96,21 +113,50 @@ export const TodayView = () => {
             <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between">
                 <h3 className="text-[11px] font-bold text-[var(--fs-color-text-secondary)] uppercase tracking-wider">Top 3 Priorities</h3>
-                <span className="text-[10px] text-[var(--fs-color-brand-primary)]">Anchor Tasks</span>
+                <span className="text-[10px] text-[var(--fs-color-brand-primary)] font-semibold">Anchor Tasks</span>
               </div>
 
               <div className="space-y-2">
-                {state.topPriorities.map((item, idx) => (
-                  <div key={item.id} className="p-3 rounded-xl bg-[var(--fs-color-surface-elevated)] border border-[var(--fs-color-surface-glass-border)] flex items-start space-x-3">
-                    <span className="w-5 h-5 rounded-full bg-[var(--fs-color-brand-primary)]/20 text-[var(--fs-color-brand-primary)] font-bold text-xs flex items-center justify-center flex-shrink-0">
-                      {idx + 1}
-                    </span>
-                    <div>
-                      <p className="text-xs font-medium text-[var(--fs-color-text-primary)] leading-snug">{item.title}</p>
-                      <span className="text-[10px] text-[var(--fs-color-text-tertiary)] mt-0.5 inline-block">{item.category}</span>
+                {topPrioritiesList.length === 0 ? (
+                  <p className="text-xs text-[var(--fs-color-text-tertiary)] italic p-2">No active priorities. Add a task or goal!</p>
+                ) : (
+                  topPrioritiesList.map((item, idx) => (
+                    <div key={item.id} className="p-3 rounded-xl bg-[var(--fs-color-surface-elevated)] border border-[var(--fs-color-surface-glass-border)] flex items-center justify-between">
+                      <div className="flex items-center space-x-2.5 flex-1 min-w-0">
+                        <span className="w-5 h-5 rounded-full bg-[var(--fs-color-brand-primary)]/20 text-[var(--fs-color-brand-primary)] font-bold text-xs flex items-center justify-center flex-shrink-0">
+                          {idx + 1}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold text-[var(--fs-color-text-primary)] truncate">{item.title}</p>
+                          <span className="text-[10px] text-[var(--fs-color-text-tertiary)] inline-block">{item.category}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-1 flex-shrink-0 ml-2">
+                        <button
+                          onClick={() => {
+                            if (item.isTask) toggleMicroTask(item.id);
+                            else updateGoalColumn(item.id, 'complete');
+                          }}
+                          className="p-1 rounded text-[var(--fs-color-text-tertiary)] hover:text-[var(--fs-color-success)] transition-colors"
+                          title="Mark Complete"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (item.isTask) deleteMicroTask(item.id);
+                            else deleteGoal(item.id);
+                          }}
+                          className="p-1 rounded text-[var(--fs-color-text-tertiary)] hover:text-[var(--fs-color-danger)] transition-colors"
+                          title="Delete Priority"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
@@ -124,28 +170,57 @@ export const TodayView = () => {
                 </span>
               </div>
 
-              <div className="space-y-2">
+              {/* Add New Habit Form */}
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                if (!newHabitText.trim()) return;
+                addHabit(newHabitText.trim());
+                setNewHabitText('');
+              }} className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  placeholder="Add new habit..."
+                  value={newHabitText}
+                  onChange={(e) => setNewHabitText(e.target.value)}
+                  className="input-text flex-1 text-xs py-1 px-2.5 min-h-[34px]"
+                />
+                <button type="submit" className="btn-primary py-1 px-2.5 min-h-[34px] text-xs shrink-0">
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              </form>
+
+              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                 {state.habits.map((habit) => (
-                  <button
+                  <div
                     key={habit.id}
-                    onClick={() => toggleHabit(habit.id)}
-                    className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-left transition-all ${
+                    className={`w-full flex items-center justify-between p-2.5 rounded-xl border transition-all ${
                       habit.completed
                         ? 'bg-[var(--fs-color-success)]/10 border-[var(--fs-color-success)]/30 text-[var(--fs-color-success)]'
                         : 'bg-[var(--fs-color-surface-elevated)] border-[var(--fs-color-surface-glass-border)] text-[var(--fs-color-text-primary)]'
                     }`}
                   >
-                    <div className="flex items-center space-x-2.5">
+                    <button
+                      onClick={() => toggleHabit(habit.id)}
+                      className="flex items-center space-x-2.5 flex-1 min-w-0 text-left"
+                    >
                       {habit.completed ? (
                         <CheckCircle2 className="w-4 h-4 text-[var(--fs-color-success)] flex-shrink-0" />
                       ) : (
                         <Circle className="w-4 h-4 text-[var(--fs-color-text-tertiary)] flex-shrink-0" />
                       )}
-                      <span className={`text-xs font-medium ${habit.completed ? 'line-through opacity-70' : ''}`}>
+                      <span className={`text-xs font-medium truncate ${habit.completed ? 'line-through opacity-70' : ''}`}>
                         {habit.text}
                       </span>
-                    </div>
-                  </button>
+                    </button>
+
+                    <button
+                      onClick={() => deleteHabit(habit.id)}
+                      className="p-1 rounded text-[var(--fs-color-text-tertiary)] hover:text-[var(--fs-color-danger)] transition-colors ml-2 flex-shrink-0"
+                      title="Delete habit"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 ))}
               </div>
             </div>

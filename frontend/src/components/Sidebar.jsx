@@ -45,20 +45,13 @@ export const Sidebar = () => {
             <p className="text-[11px] text-[var(--fs-color-text-secondary)] font-medium mt-1">Pro Architecture</p>
           </div>
 
-          <div className="flex items-center space-x-1">
-            <div className="flex items-center space-x-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold mr-1" title="Active Daily Streak">
-              <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400/30 animate-pulse" />
-              <span>{state.streakCount}d</span>
-            </div>
-
-            <button
-              onClick={toggleSidebar}
-              className="btn-icon w-8 h-8 min-w-[32px] min-h-[32px] text-[var(--fs-color-text-secondary)] hover:text-[var(--fs-color-text-primary)]"
-              title="Hide Sidebar"
-            >
-              <PanelLeftClose className="w-4 h-4" />
-            </button>
-          </div>
+          <button
+            onClick={toggleSidebar}
+            className="btn-icon w-8 h-8 min-w-[32px] min-h-[32px] text-[var(--fs-color-text-secondary)] hover:text-[var(--fs-color-text-primary)]"
+            title="Hide Sidebar"
+          >
+            <PanelLeftClose className="w-4 h-4" />
+          </button>
         </div>
 
         {/* Navigation List */}

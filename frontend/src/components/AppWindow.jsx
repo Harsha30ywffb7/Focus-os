@@ -4,12 +4,12 @@ import { Sidebar } from './Sidebar';
 import { CommandPalette } from './CommandPalette';
 import { NewTaskModal } from './NewTaskModal';
 import { HelpModal } from './HelpModal';
-import { 
-  Sun, 
-  Moon, 
-  Search, 
-  Plus, 
-  HelpCircle, 
+import {
+  Sun,
+  Moon,
+  Search,
+  Plus,
+  HelpCircle,
   Clock,
   PanelLeft
 } from 'lucide-react';
@@ -51,13 +51,13 @@ export const AppWindow = ({ children }) => {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-0 md:p-4 lg:p-6 bg-[var(--fs-color-surface-base)] transition-colors duration-300">
-      
+
       {/* Outer macOS Application Frame */}
       <div className="w-full max-w-[1440px] h-screen md:h-[94vh] flex flex-col rounded-none md:rounded-2xl overflow-hidden glass-panel border border-[var(--fs-color-surface-glass-border)] shadow-[var(--fs-elevation-4)] transition-all duration-300">
-        
+
         {/* Title Bar */}
         <header className="h-10 flex items-center justify-between px-4 border-b border-[var(--fs-color-surface-glass-border)] bg-[var(--fs-color-surface-secondary)] select-none z-[var(--fs-z-sticky)]">
-          
+
           {/* Traffic Lights Controls + Sidebar Toggle Button */}
           <div className="flex items-center space-x-2">
             <button className="traffic-light close" title="Close" />
@@ -101,7 +101,7 @@ export const AppWindow = ({ children }) => {
 
             <button
               onClick={() => setIsNewTaskOpen(true)}
-              className="btn-primary py-1 px-3 min-h-[32px] text-xs font-semibold"
+              className="btn-primary py-1 px-2 text-xs max-h-[16px] font-semibold"
               title="New Task (Cmd+N)"
             >
               <Plus className="w-3.5 h-3.5" />

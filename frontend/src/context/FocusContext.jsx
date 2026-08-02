@@ -237,11 +237,10 @@ export const FocusProvider = ({ children }) => {
     loadBackendData();
   }, []);
 
-  // Save to localStorage and sync to Bun backend on change
+  // Save to localStorage on change
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      apiService.syncState(state);
     } catch (e) {
       console.error('Error saving state:', e);
     }
@@ -285,10 +284,12 @@ export const FocusProvider = ({ children }) => {
   const updateDailyIntention = (intention) => setState(prev => ({ ...prev, dailyIntention: intention }));
 
   const toggleHabit = (id) => {
+    let isCompleted = false;
     setState(prev => {
       const updated = prev.habits.map(h => {
         if (h.id === id) {
           const next = !h.completed;
+          isCompleted = next;
           if (next) triggerConfetti();
           return { ...h, completed: next };
         }
@@ -296,17 +297,25 @@ export const FocusProvider = ({ children }) => {
       });
       return { ...prev, habits: updated };
     });
+    apiService.updateHabit(id, { completed: isCompleted });
   };
 
-  const addHabit = (text) => setState(prev => ({
-    ...prev,
-    habits: [...prev.habits, { id: 'h_' + Date.now(), text, completed: false, icon: 'CheckCircle2' }]
-  }));
+  const addHabit = (text) => {
+    const newHabit = { id: 'h_' + Date.now(), text, completed: false, icon: 'CheckCircle2' };
+    setState(prev => ({
+      ...prev,
+      habits: [...prev.habits, newHabit]
+    }));
+    apiService.addHabit(newHabit);
+  };
 
-  const deleteHabit = (id) => setState(prev => ({
-    ...prev,
-    habits: prev.habits.filter(h => h.id !== id)
-  }));
+  const deleteHabit = (id) => {
+    setState(prev => ({
+      ...prev,
+      habits: prev.habits.filter(h => h.id !== id)
+    }));
+    apiService.deleteHabit(id);
+  };
 
   // Time Block Actions
   const addTimeBlock = (block) => {
@@ -336,7 +345,10 @@ export const FocusProvider = ({ children }) => {
   };
 
   // Quick Capture & Micro Tasks
-  const updateNotes = (notes) => setState(prev => ({ ...prev, quickCaptureNotes: notes }));
+  const updateNotes = (notes) => {
+    setState(prev => ({ ...prev, quickCaptureNotes: notes }));
+    apiService.saveNotes(notes);
+  };
 
   const addMicroTask = (title, category = 'General', priority = 'medium') => {
     const newTask = { id: 'm_' + Date.now(), title, category, priority, completed: false };
@@ -373,75 +385,133 @@ export const FocusProvider = ({ children }) => {
   };
 
   // Goals Kanban Actions
-  const addGoal = (goal) => setState(prev => ({
-    ...prev,
-    goals: [
-      ...prev.goals,
-      {
-        id: 'g_' + Date.now(),
-        column: 'backlog',
-        progress: 0,
-        subtasks: [],
-        ...goal
-      }
-    ]
-  }));
+  const addGoal = (goal) => {
+    const newGoal = {
+      id: 'g_' + Date.now(),
+      column: 'backlog',
+      progress: 0,
+      subtasks: [],
+      ...goal
+    };
+    setState(prev => ({
+      ...prev,
+      goals: [...prev.goals, newGoal]
+    }));
+    apiService.addGoal(newGoal);
+  };
 
-  const updateGoalColumn = (goalId, newColumn) => setState(prev => {
+  const updateGoalColumn = (goalId, newColumn) => {
     if (newColumn === 'complete') triggerConfetti();
-    return {
+    const newProgress = newColumn === 'complete' ? 100 : undefined;
+    setState(prev => ({
       ...prev,
       goals: prev.goals.map(g => g.id === goalId ? { 
         ...g, 
         column: newColumn, 
         progress: newColumn === 'complete' ? 100 : g.progress 
       } : g)
-    };
-  });
+    }));
+    apiService.updateGoal(goalId, { column: newColumn, progress: newProgress });
+  };
 
-  const updateGoalProgress = (goalId, progress) => setState(prev => {
+  const updateGoalProgress = (goalId, progress) => {
     if (progress === 100) triggerConfetti();
-    return {
+    const newColumn = progress === 100 ? 'complete' : undefined;
+    setState(prev => ({
       ...prev,
       goals: prev.goals.map(g => g.id === goalId ? { 
         ...g, 
         progress,
         column: progress === 100 ? 'complete' : g.column
       } : g)
-    };
-  });
+    }));
+    apiService.updateGoal(goalId, { progress, column: newColumn });
+  };
 
-  const deleteGoal = (goalId) => setState(prev => ({
-    ...prev,
-    goals: prev.goals.filter(g => g.id !== goalId)
-  }));
+  const deleteGoal = (goalId) => {
+    setState(prev => ({
+      ...prev,
+      goals: prev.goals.filter(g => g.id !== goalId)
+    }));
+    apiService.deleteGoal(goalId);
+  };
 
   // Vision Milestones Actions
-  const toggleMilestone = (pillarId, milestoneId) => setState(prev => {
-    const updatedPillars = prev.pillars.map(p => {
-      if (p.id === pillarId) {
-        const updatedM = p.milestones.map(m => {
-          if (m.id === milestoneId) {
-            const next = !m.completed;
-            if (next) triggerConfetti();
-            return { ...m, completed: next };
-          }
-          return m;
-        });
-        return { ...p, milestones: updatedM };
-      }
-      return p;
+  const toggleMilestone = (pillarId, milestoneId) => {
+    let isNextCompleted = false;
+    setState(prev => {
+      const updatedPillars = prev.pillars.map(p => {
+        if (p.id === pillarId) {
+          const updatedM = p.milestones.map(m => {
+            if (m.id === milestoneId) {
+              const next = !m.completed;
+              isNextCompleted = next;
+              if (next) triggerConfetti();
+              return { ...m, completed: next };
+            }
+            return m;
+          });
+          return { ...p, milestones: updatedM };
+        }
+        return p;
+      });
+      return { ...prev, pillars: updatedPillars };
     });
-    return { ...prev, pillars: updatedPillars };
-  });
+    apiService.updatePillarMilestone(milestoneId, { completed: isNextCompleted });
+  };
 
-  const addMilestone = (pillarId, milestone) => setState(prev => ({
-    ...prev,
-    pillars: prev.pillars.map(p => p.id === pillarId ? {
-      ...p,
-      milestones: [...p.milestones, { ...milestone, id: 'm_' + Date.now(), completed: false }]
-    } : p)
-  }));
+  const addMilestone = (pillarId, milestone) => {
+    const newMilestone = {
+      id: milestone.id || 'm_' + Date.now(),
+      year: milestone.year || '1 Year',
+      quarter: milestone.quarter || 'Q4 2026',
+      title: milestone.title,
+      completed: false
+    };
+    setState(prev => ({
+      ...prev,
+      pillars: prev.pillars.map(p => p.id === pillarId ? {
+        ...p,
+        milestones: [...p.milestones, newMilestone]
+      } : p)
+    }));
+    apiService.addPillarMilestone(pillarId, newMilestone);
+  };
+
+  const deleteMilestone = (pillarId, milestoneId) => {
+    setState(prev => ({
+      ...prev,
+      pillars: prev.pillars.map(p => p.id === pillarId ? {
+        ...p,
+        milestones: p.milestones.filter(m => m.id !== milestoneId)
+      } : p)
+    }));
+    apiService.deletePillarMilestone(milestoneId);
+  };
+
+  // Timeline Actions
+  const addTimelineItem = (item) => {
+    const newEntry = {
+      id: 'mt_' + Date.now(),
+      date: item.date || new Date().toISOString().slice(0, 10),
+      title: item.title,
+      category: item.category || 'General',
+      note: item.note || ''
+    };
+    setState(prev => ({
+      ...prev,
+      milestonesTimeline: [newEntry, ...prev.milestonesTimeline]
+    }));
+    apiService.addTimelineItem(newEntry);
+  };
+
+  const deleteTimelineItem = (id) => {
+    setState(prev => ({
+      ...prev,
+      milestonesTimeline: prev.milestonesTimeline.filter(mt => mt.id !== id)
+    }));
+    apiService.deleteTimelineItem(id);
+  };
 
   // Data Persistence Management
   const loadSampleData = () => {
@@ -509,6 +579,9 @@ export const FocusProvider = ({ children }) => {
       deleteGoal,
       toggleMilestone,
       addMilestone,
+      deleteMilestone,
+      addTimelineItem,
+      deleteTimelineItem,
       triggerConfetti,
       loadSampleData,
       exportDataJSON,
