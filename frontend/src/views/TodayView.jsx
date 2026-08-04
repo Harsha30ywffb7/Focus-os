@@ -62,7 +62,7 @@ export const TodayView = () => {
     changeSelectedDate(todayStr);
   };
 
-  // Dynamically derive Top 3 Priorities from real DB tasks & goals
+  // Dynamically derive Top 3 Priorities from active tasks & goals (excluding Backlog items)
   const priorityRank = { high: 1, medium: 2, low: 3 };
   const topPrioritiesList = [
     ...state.microTasks
@@ -75,16 +75,21 @@ export const TodayView = () => {
         completed: !!m.completed
       })),
     ...state.goals
+      .filter(g => g.column !== 'backlog') // Exclude Backlog goals from Top 3 Priorities
       .map(g => ({
         id: g.id,
         title: g.title,
         category: g.category || 'Goal',
         isTask: false,
         priority: g.priority,
-        completed: g.column === 'complete' || g.progress === 100
+        completed: g.column === 'complete' || g.column === 'completed' || (g.progress !== undefined && Number(g.progress) >= 100)
       }))
   ]
-    .sort((a, b) => (priorityRank[a.priority] || 2) - (priorityRank[b.priority] || 2))
+    .sort((a, b) => {
+      // Keep uncompleted first, then completed, sorted by priority
+      if (a.completed !== b.completed) return a.completed ? 1 : -1;
+      return (priorityRank[a.priority] || 2) - (priorityRank[b.priority] || 2);
+    })
     .slice(0, 3);
 
   const timeSlots = [];
@@ -155,7 +160,7 @@ export const TodayView = () => {
                       {idx + 1}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className={`text-xs font-semibold truncate ${item.completed ? 'line-through opacity-70 text-[var(--fs-color-text-secondary)]' : 'text-[var(--fs-color-text-primary)]'}`}>
+                      <p className={`text-xs font-semibold truncate ${item.completed ? 'text-[var(--fs-color-success)] font-bold' : 'text-[var(--fs-color-text-primary)]'}`}>
                         {item.title}
                       </p>
                       <span className="text-[10px] text-[var(--fs-color-text-tertiary)] inline-block">{item.category}</span>
