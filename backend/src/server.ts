@@ -68,35 +68,53 @@ async function handleRequest(req: Request): Promise<Response> {
     // 3. FETCH FULL INITIAL STATE FROM POSTGRESQL (State Hydration)
     if (url.pathname === "/api/state" && method === "GET") {
       try {
-        const habits =
-          await sql`SELECT id, text, completed, icon, streak_count as "streakCount" FROM habits ORDER BY created_at ASC`;
-        const timeBlocks =
-          await sql`SELECT id, time_slot as "timeSlot", duration_minutes as "durationMinutes", title, status, category FROM time_blocks ORDER BY time_slot ASC`;
-        const microTasks =
-          await sql`SELECT id, title, completed, priority, category FROM micro_tasks ORDER BY created_at DESC`;
-        const goals =
-          await sql`SELECT id, title, column_name as column, target_date as "targetDate", progress, category, priority FROM goals ORDER BY created_at DESC`;
-        const pillars =
-          await sql`SELECT id, name, icon, badge, vision, color_from as "colorFrom", color_to as "colorTo" FROM life_pillars`;
+        const reqDate = url.searchParams.get("date");
 
-        for (const goal of goals) {
-          const subtasks =
-            await sql`SELECT id, text, done FROM goal_subtasks WHERE goal_id = ${goal.id}`;
-          goal.subtasks = subtasks;
+        const [
+          habits,
+          timeBlocks,
+          microTasks,
+          goals,
+          allSubtasks,
+          pillars,
+          allMilestones,
+          timeline,
+          intentionResult
+        ] = await Promise.all([
+          sql`SELECT id, text, completed, icon, streak_count as "streakCount" FROM habits ORDER BY created_at ASC`,
+          reqDate
+            ? sql`SELECT id, time_slot as "timeSlot", duration_minutes as "durationMinutes", title, status, category, date::text as date FROM time_blocks WHERE date = ${reqDate}::date ORDER BY time_slot ASC`
+            : sql`SELECT id, time_slot as "timeSlot", duration_minutes as "durationMinutes", title, status, category, date::text as date FROM time_blocks WHERE date = CURRENT_DATE ORDER BY time_slot ASC`,
+          reqDate
+            ? sql`SELECT id, title, completed, priority, category, date::text as date FROM micro_tasks WHERE date = ${reqDate}::date ORDER BY created_at DESC`
+            : sql`SELECT id, title, completed, priority, category, date::text as date FROM micro_tasks WHERE date = CURRENT_DATE ORDER BY created_at DESC`,
+          sql`SELECT id, title, column_name as column, target_date as "targetDate", progress, category, priority FROM goals ORDER BY created_at DESC`,
+          sql`SELECT id, goal_id as "goalId", text, done FROM goal_subtasks`,
+          sql`SELECT id, name, icon, badge, vision, color_from as "colorFrom", color_to as "colorTo" FROM life_pillars`,
+          sql`SELECT id, pillar_id as "pillarId", year_horizon as year, quarter, title, completed FROM pillar_milestones`,
+          sql`SELECT id, date, title, category, note FROM milestones_timeline ORDER BY date DESC`,
+          sql`SELECT intention FROM daily_intentions ORDER BY created_at DESC LIMIT 1`
+        ]);
+
+        // Map subtasks to goals in memory
+        const subtaskMap = new Map<string, any[]>();
+        for (const st of allSubtasks) {
+          if (!subtaskMap.has(st.goalId)) subtaskMap.set(st.goalId, []);
+          subtaskMap.get(st.goalId)!.push({ id: st.id, text: st.text, done: st.done });
+        }
+        for (const g of goals) {
+          g.subtasks = subtaskMap.get(g.id) || [];
         }
 
-        for (const pillar of pillars) {
-          const milestones =
-            await sql`SELECT id, year_horizon as year, quarter, title, completed FROM pillar_milestones WHERE pillar_id = ${pillar.id}`;
-          pillar.milestones = milestones;
+        // Map milestones to pillars in memory
+        const milestoneMap = new Map<string, any[]>();
+        for (const ms of allMilestones) {
+          if (!milestoneMap.has(ms.pillarId)) milestoneMap.set(ms.pillarId, []);
+          milestoneMap.get(ms.pillarId)!.push({ id: ms.id, year: ms.year, quarter: ms.quarter, title: ms.title, completed: ms.completed });
         }
-
-        const timeline =
-          await sql`SELECT id, date, title, category, note FROM milestones_timeline ORDER BY date DESC`;
-        const notesResult =
-          await sql`SELECT notes FROM quick_capture_notes ORDER BY updated_at DESC LIMIT 1`;
-        const intentionResult =
-          await sql`SELECT intention FROM daily_intentions ORDER BY created_at DESC LIMIT 1`;
+        for (const p of pillars) {
+          p.milestones = milestoneMap.get(p.id) || [];
+        }
 
         return jsonResponse({
           habits,
@@ -105,7 +123,6 @@ async function handleRequest(req: Request): Promise<Response> {
           goals,
           pillars,
           milestonesTimeline: timeline,
-          quickCaptureNotes: notesResult[0]?.notes || "",
           dailyIntention: intentionResult[0]?.intention || "",
         });
       } catch (err: any) {
@@ -158,18 +175,21 @@ async function handleRequest(req: Request): Promise<Response> {
 
     // B. TIME BLOCKS TABLE APIs (`/api/time-blocks`)
     if (url.pathname === "/api/time-blocks" && method === "GET") {
-      const blocks =
-        await sql`SELECT id, time_slot as "timeSlot", duration_minutes as "durationMinutes", title, status, category FROM time_blocks ORDER BY time_slot ASC`;
+      const reqDate = url.searchParams.get("date");
+      const blocks = reqDate
+        ? await sql`SELECT id, time_slot as "timeSlot", duration_minutes as "durationMinutes", title, status, category, date::text as date FROM time_blocks WHERE date = ${reqDate}::date ORDER BY time_slot ASC`
+        : await sql`SELECT id, time_slot as "timeSlot", duration_minutes as "durationMinutes", title, status, category, date::text as date FROM time_blocks WHERE date = CURRENT_DATE ORDER BY time_slot ASC`;
       return jsonResponse(blocks);
     }
 
     if (url.pathname === "/api/time-blocks" && method === "POST") {
       const body = await req.json();
       const id = body.id || "tb_" + Date.now();
+      const targetDate = body.date || new Date().toISOString().split("T")[0];
       const newBlock = await sql`
-          INSERT INTO time_blocks (id, time_slot, duration_minutes, title, status, category)
-          VALUES (${id}, ${body.timeSlot}, ${body.durationMinutes || 60}, ${body.title}, ${body.status || "upcoming"}, ${body.category || "General"})
-          RETURNING id, time_slot as "timeSlot", duration_minutes as "durationMinutes", title, status, category;
+          INSERT INTO time_blocks (id, time_slot, duration_minutes, title, status, category, date)
+          VALUES (${id}, ${body.timeSlot}, ${body.durationMinutes || 60}, ${body.title}, ${body.status || "upcoming"}, ${body.category || "General"}, ${targetDate}::date)
+          RETURNING id, time_slot as "timeSlot", duration_minutes as "durationMinutes", title, status, category, date::text as date;
         `;
       return jsonResponse(newBlock[0], 201);
     }
@@ -185,7 +205,9 @@ async function handleRequest(req: Request): Promise<Response> {
             UPDATE time_blocks
             SET status = COALESCE(${body.status ?? null}, status),
                 time_slot = COALESCE(${body.timeSlot ?? null}, time_slot),
-                title = COALESCE(${body.title ?? null}, title)
+                title = COALESCE(${body.title ?? null}, title),
+                duration_minutes = COALESCE(${body.durationMinutes ?? null}, duration_minutes),
+                category = COALESCE(${body.category ?? null}, category)
             WHERE id = ${tbId}
             RETURNING id, time_slot as "timeSlot", duration_minutes as "durationMinutes", title, status, category;
           `;
@@ -199,18 +221,21 @@ async function handleRequest(req: Request): Promise<Response> {
 
     // C. MICRO TASKS TABLE APIs (`/api/micro-tasks`)
     if (url.pathname === "/api/micro-tasks" && method === "GET") {
-      const tasks =
-        await sql`SELECT id, title, completed, priority, category FROM micro_tasks ORDER BY created_at DESC`;
+      const reqDate = url.searchParams.get("date");
+      const tasks = reqDate
+        ? await sql`SELECT id, title, completed, priority, category, date::text as date FROM micro_tasks WHERE date = ${reqDate}::date ORDER BY created_at DESC`
+        : await sql`SELECT id, title, completed, priority, category, date::text as date FROM micro_tasks WHERE date = CURRENT_DATE ORDER BY created_at DESC`;
       return jsonResponse(tasks);
     }
 
     if (url.pathname === "/api/micro-tasks" && method === "POST") {
       const body = await req.json();
       const id = body.id || "m_" + Date.now();
+      const targetDate = body.date || new Date().toISOString().split("T")[0];
       const newTask = await sql`
-          INSERT INTO micro_tasks (id, title, completed, priority, category)
-          VALUES (${id}, ${body.title}, ${body.completed || false}, ${body.priority || "medium"}, ${body.category || "General"})
-          RETURNING id, title, completed, priority, category;
+          INSERT INTO micro_tasks (id, title, completed, priority, category, date)
+          VALUES (${id}, ${body.title}, ${body.completed || false}, ${body.priority || "medium"}, ${body.category || "General"}, ${targetDate}::date)
+          RETURNING id, title, completed, priority, category, date::text as date;
         `;
       return jsonResponse(newTask[0], 201);
     }
@@ -347,18 +372,6 @@ async function handleRequest(req: Request): Promise<Response> {
       }
     }
 
-    // F. QUICK CAPTURE NOTES TABLE API (`/api/notes`)
-    if (url.pathname === "/api/notes" && method === "GET") {
-      const notes =
-        await sql`SELECT notes FROM quick_capture_notes ORDER BY updated_at DESC LIMIT 1`;
-      return jsonResponse({ notes: notes[0]?.notes || "" });
-    }
-
-    if (url.pathname === "/api/notes" && method === "POST") {
-      const body = await req.json();
-      await sql`INSERT INTO quick_capture_notes (notes) VALUES (${body.notes})`;
-      return jsonResponse({ message: "Notes saved" });
-    }
 
     // G. DAILY INTENTION TABLE API (`/api/intention`)
     if (url.pathname === "/api/intention" && method === "GET") {

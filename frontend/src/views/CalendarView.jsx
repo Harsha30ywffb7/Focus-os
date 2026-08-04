@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFocus } from '../context/FocusContext';
 import { 
   Calendar as CalendarIcon, 
@@ -8,14 +8,48 @@ import {
   Target,
   CheckCircle2
 } from 'lucide-react';
+import { apiService } from '../services/api';
 
 export const CalendarView = () => {
-  const { state } = useFocus();
-  const [currentMonth, setCurrentMonth] = useState(new Date(2026, 7, 1));
-  const [selectedDay, setSelectedDay] = useState(2);
+  const { state, changeSelectedDate } = useFocus();
 
-  const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
-  const firstDayOfWeek = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
+  const today = new Date();
+  const getFormatDate = (d) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const todayDateStr = getFormatDate(today);
+
+  const [currentMonth, setCurrentMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [selectedDateStr, setSelectedDateStr] = useState(state.selectedDate || todayDateStr);
+  const [dayTimeBlocks, setDayTimeBlocks] = useState([]);
+  const [dayMicroTasks, setDayMicroTasks] = useState([]);
+
+  // Fetch detailed log for selected date
+  useEffect(() => {
+    let isMounted = true;
+    async function loadDayDetails() {
+      const [blocks, tasks] = await Promise.all([
+        apiService.getTimeBlocks(selectedDateStr),
+        apiService.getMicroTasks(selectedDateStr)
+      ]);
+      if (isMounted) {
+        setDayTimeBlocks(Array.isArray(blocks) ? blocks : []);
+        setDayMicroTasks(Array.isArray(tasks) ? tasks : []);
+      }
+    }
+    loadDayDetails();
+    return () => { isMounted = false; };
+  }, [selectedDateStr]);
+
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDayOfWeek = new Date(year, month, 1).getDay();
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -30,6 +64,18 @@ export const CalendarView = () => {
     setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
   };
 
+  const handleTodayClick = () => {
+    const now = new Date();
+    setCurrentMonth(new Date(now.getFullYear(), now.getMonth(), 1));
+    setSelectedDateStr(todayDateStr);
+    changeSelectedDate(todayDateStr);
+  };
+
+  const handleSelectDay = (dateStr) => {
+    setSelectedDateStr(dateStr);
+    changeSelectedDate(dateStr);
+  };
+
   const daysArray = [];
   for (let i = 0; i < firstDayOfWeek; i++) {
     daysArray.push(null);
@@ -38,8 +84,6 @@ export const CalendarView = () => {
     daysArray.push(d);
   }
 
-  const selectedDateStr = `2026-08-${selectedDay.toString().padStart(2, '0')}`;
-  const dayTimeBlocks = state.timeBlocks;
   const dayGoals = state.goals.filter(g => g.targetDate === selectedDateStr);
 
   return (
@@ -53,23 +97,26 @@ export const CalendarView = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-[var(--fs-color-text-primary)] tracking-tight">
-              {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+              {monthNames[month]} {year}
             </h1>
             <p className="text-xs text-[var(--fs-color-text-secondary)] mt-1">
-              Synced schedule across time blocks, goal deadlines, and routines.
+              Synced monthly calendar. Click any day to view detailed tasks and schedule.
             </p>
           </div>
         </div>
 
         {/* Controls */}
         <div className="flex items-center space-x-2">
-          <button onClick={handlePrevMonth} className="btn-icon">
+          <button onClick={handlePrevMonth} className="btn-icon" title="Previous Month">
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="badge badge-category px-3 py-1.5 font-semibold text-xs">
-            Today (Aug 2)
-          </span>
-          <button onClick={handleNextMonth} className="btn-icon">
+          <button 
+            onClick={handleTodayClick} 
+            className="badge badge-category px-3 py-1.5 font-semibold text-xs hover:bg-[var(--fs-color-brand-primary)] hover:text-white transition-colors cursor-pointer"
+          >
+            Today ({today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
+          </button>
+          <button onClick={handleNextMonth} className="btn-icon" title="Next Month">
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
@@ -93,57 +140,86 @@ export const CalendarView = () => {
               </div>
 
               <div className="grid grid-cols-7 gap-2">
-            {daysArray.map((dayNum, index) => {
-              if (dayNum === null) {
-                return <div key={`empty-${index}`} className="h-24 rounded-xl bg-[var(--fs-color-surface-secondary)]/30" />;
-              }
+                {daysArray.map((dayNum, index) => {
+                  if (dayNum === null) {
+                    return <div key={`empty-${index}`} className="h-28 rounded-xl bg-[var(--fs-color-surface-secondary)]/30" />;
+                  }
 
-              const isSelected = selectedDay === dayNum;
-              const isToday = dayNum === 2 && currentMonth.getMonth() === 7;
-              const dateStr = `2026-08-${dayNum.toString().padStart(2, '0')}`;
-              const goalCount = state.goals.filter(g => g.targetDate === dateStr).length;
+                  const dayDate = new Date(year, month, dayNum);
+                  const dateStr = getFormatDate(dayDate);
+                  const isSelected = selectedDateStr === dateStr;
+                  const isToday = dateStr === todayDateStr;
 
-              return (
-                <div
-                  key={dayNum}
-                  onClick={() => setSelectedDay(dayNum)}
-                  className={`h-24 p-2 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
-                    isSelected
-                      ? 'bg-[var(--fs-color-brand-primary)]/20 border-[var(--fs-color-brand-primary)] shadow-md shadow-indigo-500/20'
-                      : isToday
-                      ? 'bg-amber-500/10 border-amber-500/40'
-                      : 'bg-[var(--fs-color-surface-elevated)] border-[var(--fs-color-surface-glass-border)] hover:border-[var(--fs-color-brand-primary)]/40'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className={`text-xs font-bold ${
-                      isToday ? 'w-6 h-6 rounded-full bg-amber-500 text-black flex items-center justify-center' : 'text-[var(--fs-color-text-primary)]'
-                    }`}>
-                      {dayNum}
-                    </span>
-                    {goalCount > 0 && (
-                      <span className="w-2 h-2 rounded-full bg-[var(--fs-color-brand-primary)]" title={`${goalCount} Goal Target`} />
-                    )}
-                  </div>
+                  // Tasks for this day box
+                  const cellTasks = state.microTasks.filter(m => m.date === dateStr || (isToday && !m.date));
+                  const cellBlocks = state.timeBlocks.filter(tb => tb.date === dateStr || (isToday && !tb.date));
+                  const cellGoals = state.goals.filter(g => g.targetDate === dateStr);
 
-                  <div className="space-y-1">
-                    {dayNum === 2 && (
-                      <div className="badge badge-category text-[9px] font-bold truncate">
-                        {state.timeBlocks.length} Blocks
+                  const pendingTaskCount = cellTasks.filter(m => !m.completed).length;
+                  const completedTaskCount = cellTasks.filter(m => m.completed).length;
+
+                  return (
+                    <div
+                      key={dayNum}
+                      onClick={() => handleSelectDay(dateStr)}
+                      className={`h-28 p-2 rounded-xl border transition-all cursor-pointer flex flex-col justify-between overflow-hidden ${
+                        isSelected
+                          ? 'bg-[var(--fs-color-brand-primary)]/20 border-[var(--fs-color-brand-primary)] shadow-md shadow-indigo-500/20 ring-1 ring-[var(--fs-color-brand-primary)]'
+                          : isToday
+                          ? 'bg-amber-500/10 border-amber-500/50'
+                          : 'bg-[var(--fs-color-surface-elevated)] border-[var(--fs-color-surface-glass-border)] hover:border-[var(--fs-color-brand-primary)]/40'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs font-bold ${
+                          isToday ? 'w-5 h-5 rounded-full bg-amber-500 text-black flex items-center justify-center text-[10px]' : 'text-[var(--fs-color-text-primary)]'
+                        }`}>
+                          {dayNum}
+                        </span>
+                        {cellGoals.length > 0 && (
+                          <span className="w-2 h-2 rounded-full bg-amber-500" title={`${cellGoals.length} Goal Target`} />
+                        )}
                       </div>
-                    )}
-                    {goalCount > 0 && (
-                      <div className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-600 dark:text-amber-300 text-[9px] font-bold truncate">
-                        Goal Deadline
+
+                      {/* Plainly render month tasks inside the day box */}
+                      <div className="space-y-1 my-1 overflow-hidden">
+                        {cellTasks.slice(0, 2).map((t, idx) => (
+                          <div 
+                            key={t.id || idx} 
+                            className={`text-[9px] font-medium truncate px-1 rounded ${
+                              t.completed ? 'line-through opacity-60 bg-[var(--fs-color-success)]/10 text-[var(--fs-color-success)]' : 'bg-[var(--fs-color-surface-tertiary)] text-[var(--fs-color-text-primary)]'
+                            }`}
+                            title={t.title}
+                          >
+                            • {t.title}
+                          </div>
+                        ))}
                       </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+
+                      {/* Badges / Counters */}
+                      <div className="flex items-center justify-between flex-wrap gap-1">
+                        {cellBlocks.length > 0 && (
+                          <span className="px-1 py-0.5 rounded bg-[var(--fs-color-brand-primary)]/15 text-[var(--fs-color-brand-primary)] text-[8px] font-bold">
+                            {cellBlocks.length} Blocks
+                          </span>
+                        )}
+                        {pendingTaskCount > 0 && (
+                          <span className="px-1 py-0.5 rounded bg-orange-500/20 text-orange-500 text-[8px] font-bold">
+                            {pendingTaskCount} Pending
+                          </span>
+                        )}
+                        {completedTaskCount > 0 && pendingTaskCount === 0 && cellTasks.length > 0 && (
+                          <span className="px-1 py-0.5 rounded bg-[var(--fs-color-success)]/20 text-[var(--fs-color-success)] text-[8px] font-bold">
+                            ✓ Done
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
         </div>
 
@@ -152,14 +228,14 @@ export const CalendarView = () => {
           <div className="border-b border-[var(--fs-color-surface-glass-border)] pb-4">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-[var(--fs-color-text-primary)]">
-                Daily Log & Achievements
+                Daily Detailed Log
               </h3>
               <span className="badge badge-category font-mono text-[10px]">
                 {selectedDateStr}
               </span>
             </div>
             <p className="text-xs text-[var(--fs-color-text-secondary)] mt-1">
-              Historical record of tasks, time blocks, and milestones.
+              Detailed breakdown of schedule, micro tasks, and goals for selected date.
             </p>
           </div>
 
@@ -172,7 +248,7 @@ export const CalendarView = () => {
 
             <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
               {dayTimeBlocks.length === 0 ? (
-                <p className="text-xs text-[var(--fs-color-text-tertiary)] italic">No time blocks scheduled.</p>
+                <p className="text-xs text-[var(--fs-color-text-tertiary)] italic">No time blocks scheduled on {selectedDateStr}.</p>
               ) : (
                 dayTimeBlocks.map(tb => (
                   <div key={tb.id} className="p-2.5 rounded-xl bg-[var(--fs-color-surface-elevated)] border border-[var(--fs-color-surface-glass-border)] flex items-center justify-between text-xs">
@@ -181,7 +257,7 @@ export const CalendarView = () => {
                       <span className="text-[var(--fs-color-text-primary)] font-medium">{tb.title}</span>
                     </div>
                     <span className="badge badge-category text-[10px]">
-                      {tb.category}
+                      {tb.category || 'General'}
                     </span>
                   </div>
                 ))
@@ -193,14 +269,14 @@ export const CalendarView = () => {
           <div className="space-y-3 pt-4 border-t border-[var(--fs-color-surface-glass-border)]">
             <h4 className="text-xs font-bold text-[var(--fs-color-text-secondary)] uppercase tracking-wider flex items-center space-x-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-[var(--fs-color-success)]" />
-              <span>Micro Tasks ({state.microTasks.length})</span>
+              <span>Micro Tasks ({dayMicroTasks.length})</span>
             </h4>
 
             <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-              {state.microTasks.length === 0 ? (
-                <p className="text-xs text-[var(--fs-color-text-tertiary)] italic">No tasks recorded.</p>
+              {dayMicroTasks.length === 0 ? (
+                <p className="text-xs text-[var(--fs-color-text-tertiary)] italic">No micro tasks for {selectedDateStr}.</p>
               ) : (
-                state.microTasks.map(m => (
+                dayMicroTasks.map(m => (
                   <div key={m.id} className={`p-2 rounded-xl border flex items-center justify-between text-xs ${
                     m.completed ? 'bg-[var(--fs-color-success)]/10 border-[var(--fs-color-success)]/30 text-[var(--fs-color-success)] font-medium' : 'bg-[var(--fs-color-surface-elevated)] border-[var(--fs-color-surface-glass-border)] text-[var(--fs-color-text-primary)]'
                   }`}>

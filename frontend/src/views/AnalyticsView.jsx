@@ -116,78 +116,82 @@ export const AnalyticsView = () => {
     })
     .join(" ");
 
-  // 4. REAL DYNAMIC HEATMAP WITH PENDING ORANGE & COMPLETE GREEN STATUS
+  // 4. REAL DYNAMIC HEATMAP WITH PENDING ORANGE & COMPLETE GREEN STATUS UP TO TODAY
   const generateHeatmapDays = () => {
     const days = [];
-    const startDate = new Date(2026, 0, 1);
     const today = new Date();
-    const todayStr = today.toISOString().slice(0, 10);
-    today.setHours(23, 59, 59, 999);
+    const getFormatDate = (d) => {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
+    const todayStr = getFormatDate(today);
+
+    // Start 364 days before today up to today
+    const startDate = new Date();
+    startDate.setDate(today.getDate() - 364);
 
     let curr = new Date(startDate);
-    while (curr <= today) {
-      const dateStr = curr.toISOString().slice(0, 10);
-      const isPast = dateStr < todayStr;
+    while (getFormatDate(curr) <= todayStr) {
+      const dateStr = getFormatDate(curr);
       const isToday = dateStr === todayStr;
+      const isPast = dateStr < todayStr;
 
       // 1. Filter Micro Tasks for dateStr
-      const dayTasks = isToday
-        ? state.microTasks
-        : state.microTasks.filter((m) => m.date === dateStr);
+      const dayTasks = state.microTasks.filter(
+        (m) => m.date === dateStr || (isToday && !m.date)
+      );
       const completedTasks = dayTasks.filter((m) => m.completed);
       const pendingTasks = dayTasks.filter((m) => !m.completed);
 
       // 2. Filter Time Blocks for dateStr
-      const dayBlocks = isToday
-        ? state.timeBlocks
-        : state.timeBlocks.filter((tb) => tb.date === dateStr);
+      const dayBlocks = state.timeBlocks.filter(
+        (tb) => tb.date === dateStr || (isToday && !tb.date)
+      );
       const completedBlocks = dayBlocks.filter(
-        (tb) => tb.status === "completed",
+        (tb) => tb.status === "completed"
       );
       const pendingBlocks = dayBlocks.filter((tb) => tb.status !== "completed");
 
       // 3. Filter Goals targeting dateStr
-      const dayGoals = isToday
-        ? state.goals
-        : state.goals.filter((g) => g.targetDate === dateStr);
+      const dayGoals = state.goals.filter((g) => g.targetDate === dateStr);
       const completedGoalsList = dayGoals.filter(
-        (g) => g.column === "complete",
+        (g) => g.column === "complete"
       );
       const pendingGoalsList = dayGoals.filter((g) => g.column !== "complete");
 
-      // 4. Habit Stack for dateStr
-      const dayHabits = state.habits;
+      // 4. Habit Stack (evaluated for today)
+      const dayHabits = isToday ? state.habits : [];
       const completedHabitsList = dayHabits.filter((h) => h.completed);
       const pendingHabitsList = dayHabits.filter((h) => !h.completed);
 
-      const totalItems =
-        dayTasks.length +
-        dayBlocks.length +
-        dayGoals.length +
-        (isToday ? dayHabits.length : 0);
       const totalPending =
         pendingTasks.length +
         pendingBlocks.length +
         pendingGoalsList.length +
-        (isToday ? pendingHabitsList.length : 0);
+        pendingHabitsList.length;
+
       const totalCompleted =
         completedTasks.length +
         completedBlocks.length +
         completedGoalsList.length +
-        (isToday ? completedHabitsList.length : 0);
+        completedHabitsList.length;
+
+      const totalItems = totalPending + totalCompleted;
 
       let status = "empty"; // 'empty' | 'completed' | 'pending'
       let level = 0;
 
       if (totalItems > 0) {
         if (totalPending > 0) {
-          status = "pending"; // Orange warning if any task, habit, block, or goal is pending
+          status = "pending"; // Orange if any task, habit, timeblock, or goal is pending
         } else if (totalCompleted > 0) {
-          status = "completed"; // Green if ALL items are 100% completed
-          const count = totalCompleted * 2;
-          if (count >= 6) level = 4;
-          else if (count >= 4) level = 3;
-          else if (count >= 2) level = 2;
+          status = "completed"; // Green if ALL items are completed
+          if (totalCompleted >= 6) level = 4;
+          else if (totalCompleted >= 4) level = 3;
+          else if (totalCompleted >= 2) level = 2;
           else level = 1;
         }
       }
@@ -212,6 +216,7 @@ export const AnalyticsView = () => {
         pendingHabitsList,
         totalCompleted,
         totalPending,
+        totalItems
       });
 
       curr.setDate(curr.getDate() + 1);
@@ -223,31 +228,32 @@ export const AnalyticsView = () => {
 
   const getHeatmapColorStyle = (day) => {
     if (!day) return { backgroundColor: "var(--fs-heatmap-l0)" };
-    console.log("inside the getHeatmap color", day);
 
-    if (day.status === "pending") {
-      // Warning Orange for ANY pending task, habit, timeblock, or goal
+    if (day.status === "pending" || day.totalPending > 0) {
+      // Orange for pending tasks
       return {
         backgroundColor: "#f97316",
-        border: "1px solid #f97316",
+        border: "1px solid #ea580c",
         boxShadow: "0 0 6px rgba(249, 115, 22, 0.7)",
       };
     }
 
-    switch (day.level) {
-      case 0:
-        return { backgroundColor: "var(--fs-heatmap-l0)" };
-      case 1:
-        return { backgroundColor: "var(--fs-heatmap-l1)" };
-      case 2:
-        return { backgroundColor: "var(--fs-heatmap-l2)" };
-      case 3:
-        return { backgroundColor: "var(--fs-heatmap-l3)" };
-      case 4:
-        return { backgroundColor: "var(--fs-heatmap-l4)" };
-      default:
-        return { backgroundColor: "var(--fs-heatmap-l0)" };
+    if (day.status === "completed" || day.totalCompleted > 0) {
+      switch (day.level) {
+        case 1:
+          return { backgroundColor: "var(--fs-heatmap-l1)" };
+        case 2:
+          return { backgroundColor: "var(--fs-heatmap-l2)" };
+        case 3:
+          return { backgroundColor: "var(--fs-heatmap-l3)" };
+        case 4:
+          return { backgroundColor: "var(--fs-heatmap-l4)" };
+        default:
+          return { backgroundColor: "var(--fs-heatmap-l2)" };
+      }
     }
+
+    return { backgroundColor: "var(--fs-heatmap-l0)" };
   };
 
   const handleAddTimeline = (e) => {
@@ -361,8 +367,7 @@ export const AnalyticsView = () => {
               <span>Dynamic Productivity Activity Grid</span>
             </h2>
             <p className="text-xs text-[var(--fs-color-text-secondary)]">
-              Click any date cell to view task details. Red cells highlight
-              missed past tasks.
+              Click any date cell up to today to view details. Days with pending tasks highlight in orange.
             </p>
           </div>
 
@@ -373,22 +378,18 @@ export const AnalyticsView = () => {
                 className="w-3 h-3 rounded-[2px]"
                 style={{ backgroundColor: "var(--fs-heatmap-l0)" }}
               />
-              <span>None</span>
+              <span>No Activity</span>
             </span>
             <span className="flex items-center space-x-1">
               <span
                 className="w-3 h-3 rounded-[2px]"
-                style={{ backgroundColor: "var(--fs-heatmap-l2)" }}
+                style={{ backgroundColor: "var(--fs-heatmap-l3)" }}
               />
               <span>Completed</span>
             </span>
             <span className="flex items-center space-x-1">
-              <span className="w-3 h-3 rounded-[2px] bg-amber-500" />
-              <span>Pending Today</span>
-            </span>
-            <span className="flex items-center space-x-1">
-              <span className="w-3 h-3 rounded-[2px] bg-rose-500" />
-              <span>Missed Warning</span>
+              <span className="w-3 h-3 rounded-[2px] bg-orange-500 shadow-sm" />
+              <span>Pending Tasks</span>
             </span>
           </div>
         </div>

@@ -14,7 +14,8 @@ export const sql = postgres(connectionString, {
   idle_timeout: 20,
   connect_timeout: 10,
   prepare: isSupabase ? false : true, // Disable prepared statements for Supabase PgBouncer / Session Pooler
-  ssl: isSupabase || process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+  ssl: isSupabase || process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+  onnotice: () => {} // Silence non-critical PostgreSQL engine notices
 });
 
 // Helper check database connection health

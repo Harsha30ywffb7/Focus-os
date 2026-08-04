@@ -170,10 +170,16 @@ export const NewTaskModal = ({ isOpen, onClose }) => {
                     onChange={e => setBlockDuration(e.target.value)}
                     className="input-text w-full text-xs"
                   >
-                    <option value={30}>30 mins</option>
-                    <option value={60}>60 mins</option>
-                    <option value={90}>90 mins</option>
-                    <option value={120}>2 hours</option>
+                    <option value={30}>30 mins (0.5 hr)</option>
+                    <option value={60}>60 mins (1 hr)</option>
+                    <option value={90}>90 mins (1.5 hrs)</option>
+                    <option value={120}>120 mins (2 hrs)</option>
+                    <option value={150}>150 mins (2.5 hrs)</option>
+                    <option value={180}>180 mins (3 hrs)</option>
+                    <option value={240}>240 mins (4 hrs)</option>
+                    <option value={300}>300 mins (5 hrs)</option>
+                    <option value={360}>360 mins (6 hrs)</option>
+                    <option value={480}>480 mins (8 hrs)</option>
                   </select>
                 </div>
                 <div>

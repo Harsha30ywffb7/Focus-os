@@ -4,7 +4,7 @@ import { apiService } from '../services/api';
 
 const FocusContext = createContext();
 
-const STORAGE_KEY = 'focus_os_app_state_v1';
+const THEME_STORAGE_KEY = 'focus_os_theme';
 
 // Seed Initial Data
 const defaultState = {
@@ -12,163 +12,69 @@ const defaultState = {
   accentColor: 'indigo',
   activeView: 'today', // 'today' | 'calendar' | 'goals' | 'vision' | 'analytics' | 'settings'
   isSidebarOpen: true,
+  selectedDate: new Date().toISOString().split('T')[0],
 
   // Today View Data
   dailyIntention: 'Lead with clarity, execute high-impact priorities, and maintain physical balance.',
   weather: { temp: 22, condition: "Partly Cloudy", city: "San Francisco", icon: "SunCloud" },
 
-  habits: [
-  ],
+  habits: [],
+  timeBlocks: [],
 
-  // Time blocks from 05:00 to 23:00 (30-min slots)
-  timeBlocks: [
-    { id: 'tb1', timeSlot: '06:30', durationMinutes: 60, title: 'Morning Routine & Espresso', status: 'completed', category: 'Health' },
-    { id: 'tb2', timeSlot: '08:30', durationMinutes: 120, title: 'Architecture Review: FocusOS Design System', status: 'in-progress', category: 'Engineering' },
-    { id: 'tb3', timeSlot: '11:00', durationMinutes: 90, title: 'Q3 Product Strategy Sync with Team', status: 'upcoming', category: 'Strategy' },
-    { id: 'tb4', timeSlot: '14:00', durationMinutes: 120, title: 'Deep Coding Session: Canvas Analytics & Micro-animations', status: 'upcoming', category: 'Engineering' },
-    { id: 'tb5', timeSlot: '17:30', durationMinutes: 60, title: 'Gym & Strength Training Workout', status: 'upcoming', category: 'Health' }
-  ],
-
-  quickCaptureNotes: `# Today's Brain Dump & Scratchpad\n\n- Refine PDF export layout for high-DPI displays.\n- Explore SVG radial gradients for Vision Wall milestone checkpoints.\n- Schedule weekly progress recap with engineering team.\n- Review quarterly financial allocation strategy.`,
-
-  microTasks: [
-    { id: 'm1', title: 'Review PR #402 for analytics chart rendering', completed: true, priority: 'high', category: 'Code' },
-    { id: 'm2', title: 'Schedule Q4 planning sync with design team', completed: false, priority: 'medium', category: 'Admin' },
-    { id: 'm3', title: 'Update system architecture diagram in Figma', completed: false, priority: 'low', category: 'Design' },
-    { id: 'm4', title: 'Order new ergometer desk mat and USB-C cable', completed: true, priority: 'low', category: 'Shopping' }
-  ],
-
-  topPriorities: [
-    { id: 'tp1', title: 'Ship FocusOS Glassmorphic UI Design System', category: 'Engineering', goalId: 'g1' },
-    { id: 'tp2', title: 'Finalize Q3 Product Roadmap & Milestones', category: 'Strategy', goalId: 'g2' },
-    { id: 'tp3', title: 'Complete High Intensity Workout', category: 'Health', goalId: 'g3' }
-  ],
-
-  // Short-Term Kanban Goals (30-90 Days)
-  goals: [
-  ],
-
-  // Long-Term Vision Wall (1-5 Years Life Pillars)
-  pillars: [
-    {
-      id: 'p1',
-      name: 'Career & Leadership',
-      icon: 'Briefcase',
-      colorFrom: '#6366f1',
-      colorTo: '#4f46e5',
-      badge: 'Professional',
-      vision: 'Build world-class developer tools and lead engineering teams impacting millions.',
-      milestones: [
-        { id: 'm101', year: '1 Year', title: 'Promote to Principal System Architect', completed: false, quarter: 'Q4 2026' },
-        { id: 'm102', year: '3 Years', title: 'Keynote Speaker at Tech Summits & Publish Architecture Book', completed: false, quarter: 'Q2 2028' },
-        { id: 'm103', year: '5 Years', title: 'Found an AI Product Studio scaling to $10M ARR', completed: false, quarter: 'Q3 2030' }
-      ]
-    },
-    {
-      id: 'p2',
-      name: 'Health & Vitality',
-      icon: 'HeartPulse',
-      colorFrom: '#10b981',
-      colorTo: '#059669',
-      badge: 'Physical',
-      vision: 'Maintain peak athletic condition, sound sleep architecture, and optimal metabolic health.',
-      milestones: [
-        { id: 'm201', year: '1 Year', title: 'Complete Sub-4 Hour Full Marathon', completed: false, quarter: 'Q4 2026' },
-        { id: 'm202', year: '3 Years', title: 'Master 100kg Bench Press & Single-leg Pistol Squats', completed: false, quarter: 'Q1 2028' },
-        { id: 'm203', year: '5 Years', title: 'Sustain 12% Body Fat & VO2Max > 55 consistently', completed: false, quarter: 'Q2 2030' }
-      ]
-    },
-    {
-      id: 'p3',
-      name: 'Financial Freedom',
-      icon: 'Coins',
-      colorFrom: '#f59e0b',
-      colorTo: '#d97706',
-      badge: 'Wealth',
-      vision: 'Achieve financial independence with multiple passive income streams and index portfolio growth.',
-      milestones: [
-        { id: 'm301', year: '1 Year', title: 'Reach $250k Net Worth Portfolio Benchmark', completed: true, quarter: 'Q2 2026' },
-        { id: 'm302', year: '3 Years', title: 'Acquire First Real Estate Rental Property', completed: false, quarter: 'Q3 2028' },
-        { id: 'm303', year: '5 Years', title: 'Reach $1.5M Portfolio with 4% Safe Withdrawal Buffer', completed: false, quarter: 'Q4 2030' }
-      ]
-    },
-    {
-      id: 'p4',
-      name: 'Mastery & Learning',
-      icon: 'GraduationCap',
-      colorFrom: '#8b5cf6',
-      colorTo: '#7c3aed',
-      badge: 'Intellectual',
-      vision: 'Maintain lifelong curiosity, read 25 high-impact non-fiction books per year, and master AI & Japanese.',
-      milestones: [
-        { id: 'm401', year: '1 Year', title: 'Read 25 Books & Pass JLPT N4 Japanese Language Exam', completed: false, quarter: 'Q4 2026' },
-        { id: 'm402', year: '3 Years', title: 'Build & Deploy 5 Open-Source AI Frameworks', completed: false, quarter: 'Q1 2028' },
-        { id: 'm403', year: '5 Years', title: 'Fluency in 3 Languages & Master Piano Performance', completed: false, quarter: 'Q4 2030' }
-      ]
-    },
-    {
-      id: 'p5',
-      name: 'Relationships & Life',
-      icon: 'Users',
-      colorFrom: '#f43f5e',
-      colorTo: '#e11d48',
-      badge: 'Social',
-      vision: 'Nurture deep family bonds, organize yearly international retreats with close friends, and contribute to community.',
-      milestones: [
-        { id: 'm501', year: '1 Year', title: 'Organize Family Alpine Retreat & Reunion', completed: true, quarter: 'Q3 2026' },
-        { id: 'm502', year: '3 Years', title: 'Host Quarterly Supper Clubs for Innovators & Founders', completed: false, quarter: 'Q1 2028' },
-        { id: 'm503', year: '5 Years', title: 'Sponsor Local STEM Education Scholarship Foundation', completed: false, quarter: 'Q4 2030' }
-      ]
-    }
-  ],
-
-  // Analytics State
+  microTasks: [],
+  topPriorities: [],
+  goals: [],
+  pillars: [],
   streakCount: 14,
   longestStreak: 21,
-  milestonesTimeline: [
-  ]
+  milestonesTimeline: []
 };
 
 export const FocusProvider = ({ children }) => {
   const [state, setState] = useState(() => {
+    let savedTheme = 'dark';
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        return { ...defaultState, ...JSON.parse(saved) };
-      }
+      // Clear legacy app state from local storage so only theme is persisted
+      localStorage.removeItem('focus_os_app_state_v1');
+      savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
     } catch (e) {
-      console.error('Error parsing localStorage state:', e);
+      console.error('Error reading localStorage theme:', e);
     }
-    return defaultState;
+    return {
+      ...defaultState,
+      theme: savedTheme,
+      selectedDate: new Date().toISOString().split('T')[0]
+    };
   });
 
   // Hydrate real state from Bun backend API on mount
   useEffect(() => {
     async function loadBackendData() {
-      const remoteData = await apiService.fetchState();
+      const todayDate = state.selectedDate || new Date().toISOString().split('T')[0];
+      const remoteData = await apiService.fetchState(todayDate);
       if (remoteData) {
         setState(prev => ({
           ...prev,
-          goals: remoteData.goals && remoteData.goals.length > 0 ? remoteData.goals : prev.goals,
-          habits: remoteData.habits && remoteData.habits.length > 0 ? remoteData.habits : prev.habits,
-          microTasks: remoteData.microTasks && remoteData.microTasks.length > 0 ? remoteData.microTasks : prev.microTasks,
-          timeBlocks: remoteData.timeBlocks && remoteData.timeBlocks.length > 0 ? remoteData.timeBlocks : prev.timeBlocks,
-          pillars: remoteData.pillars && remoteData.pillars.length > 0 ? remoteData.pillars : prev.pillars,
-          milestonesTimeline: remoteData.milestonesTimeline && remoteData.milestonesTimeline.length > 0 ? remoteData.milestonesTimeline : prev.milestonesTimeline
+          goals: remoteData.goals || [],
+          habits: remoteData.habits || [],
+          microTasks: remoteData.microTasks || [],
+          timeBlocks: remoteData.timeBlocks || [],
+          pillars: remoteData.pillars || [],
+          milestonesTimeline: remoteData.milestonesTimeline || []
         }));
       }
     }
     loadBackendData();
   }, []);
 
-  // Save to localStorage on change
+  // Save ONLY theme to localStorage (no other app state in local storage)
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(THEME_STORAGE_KEY, state.theme);
     } catch (e) {
-      console.error('Error saving state:', e);
+      console.error('Error saving theme to localStorage:', e);
     }
-  }, [state]);
+  }, [state.theme]);
 
   // Apply root HTML dark/light class
   useEffect(() => {
@@ -204,6 +110,19 @@ export const FocusProvider = ({ children }) => {
     ...prev,
     isSidebarOpen: !prev.isSidebarOpen
   }));
+
+  const changeSelectedDate = async (newDate) => {
+    setState(prev => ({ ...prev, selectedDate: newDate }));
+    const [blocks, tasks] = await Promise.all([
+      apiService.getTimeBlocks(newDate),
+      apiService.getMicroTasks(newDate)
+    ]);
+    setState(prev => ({
+      ...prev,
+      timeBlocks: Array.isArray(blocks) ? blocks : [],
+      microTasks: Array.isArray(tasks) ? tasks : []
+    }));
+  };
 
   const updateDailyIntention = (intention) => setState(prev => ({ ...prev, dailyIntention: intention }));
 
@@ -244,7 +163,8 @@ export const FocusProvider = ({ children }) => {
 
   // Time Block Actions
   const addTimeBlock = (block) => {
-    const newBlock = { ...block, id: 'tb_' + Date.now() };
+    const targetDate = block.date || state.selectedDate || new Date().toISOString().split('T')[0];
+    const newBlock = { ...block, id: 'tb_' + Date.now(), date: targetDate };
     setState(prev => ({
       ...prev,
       timeBlocks: [...prev.timeBlocks, newBlock]
@@ -261,6 +181,15 @@ export const FocusProvider = ({ children }) => {
     apiService.updateTimeBlock(id, { status });
   };
 
+  const updateTimeBlock = (id, data) => {
+    if (data.status === 'completed') triggerConfetti();
+    setState(prev => ({
+      ...prev,
+      timeBlocks: prev.timeBlocks.map(tb => tb.id === id ? { ...tb, ...data } : tb)
+    }));
+    apiService.updateTimeBlock(id, data);
+  };
+
   const deleteTimeBlock = (id) => {
     if (!window.confirm('Are you sure you want to delete this time block?')) return;
     setState(prev => ({
@@ -270,14 +199,10 @@ export const FocusProvider = ({ children }) => {
     apiService.deleteTimeBlock(id);
   };
 
-  // Quick Capture & Micro Tasks
-  const updateNotes = (notes) => {
-    setState(prev => ({ ...prev, quickCaptureNotes: notes }));
-    apiService.saveNotes(notes);
-  };
-
-  const addMicroTask = (title, category = 'General', priority = 'medium') => {
-    const newTask = { id: 'm_' + Date.now(), title, category, priority, completed: false };
+  // Micro Tasks
+  const addMicroTask = (title, category = 'General', priority = 'medium', date = null) => {
+    const targetDate = date || state.selectedDate || new Date().toISOString().split('T')[0];
+    const newTask = { id: 'm_' + Date.now(), title, category, priority, completed: false, date: targetDate };
     setState(prev => ({
       ...prev,
       microTasks: [newTask, ...prev.microTasks]
@@ -477,7 +402,6 @@ export const FocusProvider = ({ children }) => {
       dailyIntention: '',
       habits: [],
       timeBlocks: [],
-      quickCaptureNotes: '',
       microTasks: [],
       topPriorities: [],
       goals: [],
@@ -492,14 +416,15 @@ export const FocusProvider = ({ children }) => {
       setActiveView,
       toggleTheme,
       toggleSidebar,
+      changeSelectedDate,
       updateDailyIntention,
       toggleHabit,
       addHabit,
       deleteHabit,
       addTimeBlock,
       updateTimeBlockStatus,
+      updateTimeBlock,
       deleteTimeBlock,
-      updateNotes,
       addMicroTask,
       toggleMicroTask,
       deleteMicroTask,

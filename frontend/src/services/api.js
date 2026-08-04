@@ -11,9 +11,10 @@ export const apiService = {
     }
   },
 
-  async fetchState() {
+  async fetchState(date) {
     try {
-      const res = await fetch(`${API_BASE_URL}/state`);
+      const url = date ? `${API_BASE_URL}/state?date=${date}` : `${API_BASE_URL}/state`;
+      const res = await fetch(url);
       if (!res.ok) return null;
       return await res.json();
     } catch (e) {
@@ -59,9 +60,10 @@ export const apiService = {
   },
 
   // 3. TIME BLOCKS API (`/api/time-blocks`)
-  async getTimeBlocks() {
+  async getTimeBlocks(date) {
     try {
-      const res = await fetch(`${API_BASE_URL}/time-blocks`);
+      const url = date ? `${API_BASE_URL}/time-blocks?date=${date}` : `${API_BASE_URL}/time-blocks`;
+      const res = await fetch(url);
       return await res.json();
     } catch (e) { return []; }
   },
@@ -95,9 +97,10 @@ export const apiService = {
   },
 
   // 4. MICRO TASKS API (`/api/micro-tasks`)
-  async getMicroTasks() {
+  async getMicroTasks(date) {
     try {
-      const res = await fetch(`${API_BASE_URL}/micro-tasks`);
+      const url = date ? `${API_BASE_URL}/micro-tasks?date=${date}` : `${API_BASE_URL}/micro-tasks`;
+      const res = await fetch(url);
       return await res.json();
     } catch (e) { return []; }
   },
@@ -210,17 +213,6 @@ export const apiService = {
   async deletePillarMilestone(milestoneId) {
     try {
       await fetch(`${API_BASE_URL}/pillars/milestones/${milestoneId}`, { method: 'DELETE' });
-    } catch (e) {}
-  },
-
-  // 7. QUICK CAPTURE NOTES API (`/api/notes`)
-  async saveNotes(notes) {
-    try {
-      await fetch(`${API_BASE_URL}/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes })
-      });
     } catch (e) {}
   },
 
