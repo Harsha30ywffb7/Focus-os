@@ -16,6 +16,8 @@ export async function initDbIfNotExists() {
     const exists = checkTable[0]?.exists;
     if (exists) {
       console.log('✅ FocusOS Database tables already exist. Skipping schema creation.');
+      await sql`ALTER TABLE daily_intentions DROP COLUMN IF EXISTS quote_text;`;
+      await sql`ALTER TABLE daily_intentions DROP COLUMN IF EXISTS quote_author;`;
       return;
     }
 

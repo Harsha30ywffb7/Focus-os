@@ -225,12 +225,12 @@ export const apiService = {
   },
 
   // 8. DAILY INTENTION API (`/api/intention`)
-  async saveIntention(intention, quote) {
+  async saveIntention(intention) {
     try {
       await fetch(`${API_BASE_URL}/intention`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ intention, quote })
+        body: JSON.stringify({ intention })
       });
     } catch (e) {}
   },
