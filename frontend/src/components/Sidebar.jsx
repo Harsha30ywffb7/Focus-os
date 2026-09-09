@@ -1,6 +1,7 @@
 import React from 'react';
 import { useFocus } from '../context/FocusContext';
 import { 
+  Timer,
   Sun, 
   Calendar, 
   Target, 
@@ -17,6 +18,7 @@ export const Sidebar = () => {
 
   const navItems = [
     { id: 'today', label: 'Today', icon: Sun, badge: state.microTasks.filter(m => !m.completed).length },
+    { id: 'focus', label: 'Focus Timer', icon: Timer },
     { id: 'calendar', label: 'Calendar', icon: Calendar, badge: state.timeBlocks.length },
     { id: 'goals', label: 'Short-Term Goals', icon: Target, badge: state.goals.filter(g => g.column !== 'complete').length },
     { id: 'vision', label: 'Vision Wall', icon: Compass },
@@ -38,7 +40,7 @@ export const Sidebar = () => {
           <div className="p-4 border-b border-[var(--fs-color-surface-glass-border)] flex items-center justify-between">
             <div>
               <h1 className="font-extrabold text-base tracking-tight text-[var(--fs-color-text-primary)] leading-none">FocusOS</h1>
-              <p className="text-[11px] text-[var(--fs-color-text-secondary)] font-medium mt-1">Pro Architecture</p>
+              <p className="text-[11px] text-[var(--fs-color-text-secondary)] font-medium mt-1">Your personal workspace</p>
             </div>
 
             <button
@@ -212,8 +214,8 @@ export const Sidebar = () => {
       )}
 
       {/* 3. MOBILE BOTTOM NAVIGATION TAB BAR */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[var(--fs-color-surface-secondary)] border-t border-[var(--fs-color-surface-glass-border)] z-[var(--fs-z-sticky)] flex items-center justify-around px-2 backdrop-blur-xl">
-        {navItems.slice(0, 5).map((item) => {
+      <div className="mobile-tabbar md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[var(--fs-color-surface-secondary)] border-t border-[var(--fs-color-surface-glass-border)] z-[var(--fs-z-sticky)] flex items-center justify-around px-2 backdrop-blur-xl">
+        {navItems.filter(item => ['today', 'focus', 'calendar', 'analytics'].includes(item.id)).map((item) => {
           const Icon = item.icon;
           const isActive = state.activeView === item.id;
           return (
@@ -225,7 +227,7 @@ export const Sidebar = () => {
               }`}
             >
               <Icon className="w-5 h-5" />
-              <span className="text-[10px] mt-0.5">{item.label}</span>
+              <span className="text-[10px] mt-0.5">{item.id === 'focus' ? 'Focus' : item.label}</span>
             </button>
           );
         })}

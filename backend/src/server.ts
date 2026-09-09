@@ -1,3 +1,4 @@
+import { validHistoryRange } from "./history-range.js";
 import { sql, testConnection } from "./db";
 import { initDbIfNotExists } from "./init-db";
 import { readFileSync } from "fs";
@@ -131,6 +132,20 @@ async function handleRequest(req: Request): Promise<Response> {
           500,
         );
       }
+    }
+
+    // Historical activity is independent of the date selected in the planner.
+    if (url.pathname === "/api/analytics/history" && method === "GET") {
+      const start = url.searchParams.get("start");
+      const end = url.searchParams.get("end");
+      if (!validHistoryRange(start, end)) {
+        return jsonResponse({ error: "Provide valid start and end dates within a 366-day range." }, 400);
+      }
+      const [microTasks, timeBlocks] = await Promise.all([
+        sql`SELECT id, title, completed, priority, category, date::text as date FROM micro_tasks WHERE date BETWEEN ${start}::date AND ${end}::date ORDER BY date DESC, created_at DESC`,
+        sql`SELECT id, title, time_slot as "timeSlot", duration_minutes as "durationMinutes", status, category, date::text as date FROM time_blocks WHERE date BETWEEN ${start}::date AND ${end}::date ORDER BY date DESC, time_slot ASC`
+      ]);
+      return jsonResponse({ microTasks, timeBlocks });
     }
 
     // A. HABITS TABLE APIs (`/api/habits`)

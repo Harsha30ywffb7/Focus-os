@@ -3,46 +3,46 @@
 @layer base {
   :root {
     /* 2.1 Brand Colors */
-    --fs-color-brand-primary: hsl(245, 79%, 58%);
-    --fs-color-brand-secondary: hsl(263, 70%, 50%);
-    --fs-color-brand-gradient: linear-gradient(135deg, hsl(245, 79%, 58%), hsl(263, 70%, 50%));
+    --fs-color-brand-primary: #286653;
+    --fs-color-brand-secondary: #34765F;
+    --fs-color-brand-gradient: linear-gradient(135deg, #286653, #34765F);
 
     /* 2.2 Surface Colors (Light Mode Default) */
-    --fs-color-surface-base: #FFFFFF;
-    --fs-color-surface-elevated: #F5F5F7;
-    --fs-color-surface-primary: #FFFFFF;
-    --fs-color-surface-secondary: #F0F0F2;
-    --fs-color-surface-tertiary: #E8E8ED;
-    --fs-color-surface-glass: rgba(255, 255, 255, 0.72);
-    --fs-color-surface-glass-border: rgba(0, 0, 0, 0.08);
+    --fs-color-surface-base: #F4F3EF;
+    --fs-color-surface-elevated: #F0F0EA;
+    --fs-color-surface-primary: #FDFCFA;
+    --fs-color-surface-secondary: #EBECE5;
+    --fs-color-surface-tertiary: #E0E3DA;
+    --fs-color-surface-glass: #FDFCFA;
+    --fs-color-surface-glass-border: #D9DED4;
 
     /* 2.3 Text Colors */
-    --fs-color-text-primary: #1D1D1F;
-    --fs-color-text-secondary: #6E6E73;
-    --fs-color-text-tertiary: #86868B;
+    --fs-color-text-primary: #222B26;
+    --fs-color-text-secondary: #536058;
+    --fs-color-text-tertiary: #69746C;
     --fs-color-text-inverse: #FFFFFF;
-    --fs-color-text-brand: hsl(245, 79%, 58%);
+    --fs-color-text-brand: #286653;
 
     /* 2.4 Semantic Colors */
-    --fs-color-success: #34C759;
-    --fs-color-warning: #FF9500;
-    --fs-color-danger: #FF3B30;
-    --fs-color-info: #007AFF;
-    --fs-color-focus: hsl(245, 79%, 58%);
+    --fs-color-success: #28734E;
+    --fs-color-warning: #926019;
+    --fs-color-danger: #B64D47;
+    --fs-color-info: #3D6F86;
+    --fs-color-focus: #286653;
 
     /* 2.5 Goal Category Colors */
-    --fs-color-category-career: #5856D6;
-    --fs-color-category-health: #FF2D55;
-    --fs-color-category-finance: #34C759;
-    --fs-color-category-learning: #FF9500;
-    --fs-color-category-relations: #AF52DE;
+    --fs-color-category-career: #3D6F86;
+    --fs-color-category-health: #A46168;
+    --fs-color-category-finance: #28734E;
+    --fs-color-category-learning: #926019;
+    --fs-color-category-relations: #79678C;
 
     /* 2.6 Heatmap Scale */
-    --fs-heatmap-l0: #E5E5EA;
-    --fs-heatmap-l1: #C7D2FE;
-    --fs-heatmap-l2: #818CF8;
-    --fs-heatmap-l3: #6366F1;
-    --fs-heatmap-l4: #4338CA;
+    --fs-heatmap-l0: #E0E3DA;
+    --fs-heatmap-l1: #C9DDCE;
+    --fs-heatmap-l2: #90B99D;
+    --fs-heatmap-l3: #588D6A;
+    --fs-heatmap-l4: #286653;
 
     /* 3. Typography Tokens */
     --fs-font-primary: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
@@ -97,7 +97,7 @@
     --fs-elevation-2: 0 2px 8px rgba(0, 0, 0, 0.06);
     --fs-elevation-3: 0 4px 16px rgba(0, 0, 0, 0.08);
     --fs-elevation-4: 0 8px 32px rgba(0, 0, 0, 0.12);
-    --fs-elevation-glow: 0 0 20px rgba(99, 102, 241, 0.15);
+    --fs-elevation-glow: 0 0 20px rgba(80, 130, 100, 0.12);
 
     /* 6. Radius Scale */
     --fs-radius-sm: 6px;
@@ -126,53 +126,53 @@
 
   .dark {
     /* 2.1 Brand Colors Dark Override */
-    --fs-color-brand-primary: hsl(245, 79%, 65%);
-    --fs-color-brand-secondary: hsl(263, 70%, 60%);
-    --fs-color-brand-gradient: linear-gradient(135deg, hsl(245, 79%, 65%), hsl(263, 70%, 60%));
+    --fs-color-brand-primary: #33755F;
+    --fs-color-brand-secondary: #3B8069;
+    --fs-color-brand-gradient: linear-gradient(135deg, #33755F, #3B8069);
 
     /* 2.2 Surface Colors Dark */
-    --fs-color-surface-base: #0A0A0F;
-    --fs-color-surface-elevated: #1C1C1E;
-    --fs-color-surface-primary: #2C2C2E;
-    --fs-color-surface-secondary: #3A3A3C;
-    --fs-color-surface-tertiary: #48484A;
-    --fs-color-surface-glass: rgba(28, 28, 30, 0.72);
-    --fs-color-surface-glass-border: rgba(255, 255, 255, 0.08);
+    --fs-color-surface-base: #141917;
+    --fs-color-surface-elevated: #222B25;
+    --fs-color-surface-primary: #1C231F;
+    --fs-color-surface-secondary: #1A211D;
+    --fs-color-surface-tertiary: #303B33;
+    --fs-color-surface-glass: #1C231F;
+    --fs-color-surface-glass-border: #344038;
 
     /* 2.3 Text Colors Dark */
-    --fs-color-text-primary: #F5F5F7;
-    --fs-color-text-secondary: #A1A1A6;
-    --fs-color-text-tertiary: #8E8E93;
-    --fs-color-text-inverse: #0A0A0F;
-    --fs-color-text-brand: hsl(245, 79%, 65%);
+    --fs-color-text-primary: #E9EDE6;
+    --fs-color-text-secondary: #B4BFB5;
+    --fs-color-text-tertiary: #94A296;
+    --fs-color-text-inverse: #FFFFFF;
+    --fs-color-text-brand: #9CCBB1;
 
     /* 2.4 Semantic Colors Dark */
-    --fs-color-success: #30D158;
-    --fs-color-warning: #FF9F0A;
-    --fs-color-danger: #FF453A;
-    --fs-color-info: #0A84FF;
-    --fs-color-focus: hsl(245, 79%, 65%);
+    --fs-color-success: #91C7A3;
+    --fs-color-warning: #D3B477;
+    --fs-color-danger: #E3948B;
+    --fs-color-info: #94B7C7;
+    --fs-color-focus: #9CCBB1;
 
     /* 2.5 Goal Category Colors Dark */
-    --fs-color-category-career: #5E5CE6;
-    --fs-color-category-health: #FF375F;
-    --fs-color-category-finance: #30D158;
-    --fs-color-category-learning: #FF9F0A;
-    --fs-color-category-relations: #BF5AF2;
+    --fs-color-category-career: #94B7C7;
+    --fs-color-category-health: #D09CA3;
+    --fs-color-category-finance: #91C7A3;
+    --fs-color-category-learning: #D3B477;
+    --fs-color-category-relations: #B6A7C8;
 
     /* 2.6 Heatmap Scale Dark */
-    --fs-heatmap-l0: #2C2C2E;
-    --fs-heatmap-l1: #312E81;
-    --fs-heatmap-l2: #4338CA;
-    --fs-heatmap-l3: #6366F1;
-    --fs-heatmap-l4: #818CF8;
+    --fs-heatmap-l0: #28322B;
+    --fs-heatmap-l1: #344F3E;
+    --fs-heatmap-l2: #4E775A;
+    --fs-heatmap-l3: #74A580;
+    --fs-heatmap-l4: #A6CFAE;
 
     /* Elevation Dark Shadows */
     --fs-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.3);
     --fs-elevation-2: 0 2px 8px rgba(0, 0, 0, 0.4);
     --fs-elevation-3: 0 4px 16px rgba(0, 0, 0, 0.5);
     --fs-elevation-4: 0 8px 32px rgba(0, 0, 0, 0.6);
-    --fs-elevation-glow: 0 0 20px rgba(99, 102, 241, 0.25);
+    --fs-elevation-glow: 0 0 20px rgba(80, 130, 100, 0.16);
   }
 
   body {
@@ -345,7 +345,7 @@
 
 .input-text:focus {
   border-color: var(--fs-color-brand-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 0 0 3px rgba(80, 130, 100, 0.12);
   outline: none;
 }
 
@@ -368,7 +368,7 @@
 
 .textarea:focus {
   border-color: var(--fs-color-brand-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 0 0 3px rgba(80, 130, 100, 0.12);
   outline: none;
 }
 
@@ -691,3 +691,39 @@
     transition-duration: 0.01ms !important;
   }
 }
+/* Shared workspace refinements. */
+:root { color-scheme: light; }
+:root.dark { color-scheme: dark; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--fs-color-text-brand); outline-offset: 3px; }
+main { scrollbar-gutter: stable; }
+main > div { max-width: 1440px; margin-left: auto; margin-right: auto; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+
+:root { --fs-accent-soft: #28665310; --fs-accent-muted: #90B99D; --fs-accent-hover: #215743; }
+:root.dark { --fs-accent-soft: #9CCBB112; --fs-accent-muted: #587D65; --fs-accent-hover: #2C6652; }
+
+/* Open sections keep the daily workspace calm on every screen. */
+.today-page > .card-glass { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; border: 0; border-top: 1px solid var(--fs-color-surface-glass-border); border-radius: 0; box-shadow: none; padding: 24px 0; }
+.today-page .priority-list > div, .today-page .habit-list > div { background: transparent; border: 0; border-bottom: 1px solid var(--fs-color-surface-glass-border); border-radius: 0; padding: 14px 0; }
+.schedule-expand { align-self: flex-start; min-height: 44px; font-size: 12px; color: var(--fs-color-text-brand); margin-top: 8px; }
+.focus-page .focus-layout { display: block; max-width: 920px; margin: 0 auto; }
+.focus-page .timer-card { border: 0; border-radius: 0; background: transparent; padding: 0; max-width: 500px; margin: 0 auto 32px; }
+.focus-page .study-history { border: 0; border-top: 1px solid var(--fs-color-surface-glass-border); border-radius: 0; background: transparent; padding: 28px 0; }
+.focus-page .timer-orbit > div { background: var(--fs-color-surface-base); }
+.today-page .focus-summary { background: transparent; border: 0; border-radius: 0; padding: 12px 0 20px; }
+@media (max-width: 767px) {
+ .app-shell { height: 100dvh; }
+ .app-header { padding-top: env(safe-area-inset-top); height: calc(56px + env(safe-area-inset-top)); }
+ .app-header button { min-height: 40px; }
+ .app-body { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+ .mobile-tabbar { height: calc(64px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); }
+ main { padding: 20px 16px; scrollbar-gutter: auto; }
+ .today-page .input-text, .focus-page input, .focus-page select { font-size: 16px; }
+ .today-page button[title], .today-page .habit-list button, .today-page .priority-list button { min-height: 40px; min-width: 40px; }
+ .focus-page .timer-presets button { min-height: 44px; }
+ .focus-immersive { padding-top: calc(20px + env(safe-area-inset-top)); padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+ .focus-page .focus-section-heading { flex-wrap: wrap; }
+ .focus-summary strong { font-size: 15px; }
+}
+.today-page .schedule-slot { background: transparent; border: 0; border-bottom: 1px solid var(--fs-color-surface-glass-border); border-radius: 0; }

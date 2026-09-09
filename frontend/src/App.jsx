@@ -1,4 +1,6 @@
 import React from 'react';
+import { TimerProvider } from './context/TimerContext';
+import { FocusView } from './views/FocusView';
 import { FocusProvider, useFocus } from './context/FocusContext';
 import { AppWindow } from './components/AppWindow';
 import { TodayView } from './views/TodayView';
@@ -11,6 +13,8 @@ const ViewRouter = () => {
   const { state } = useFocus();
 
   switch (state.activeView) {
+    case 'focus':
+      return <FocusView />;
     case 'today':
       return <TodayView />;
     case 'goals':
@@ -31,9 +35,11 @@ const ViewRouter = () => {
 function App() {
   return (
     <FocusProvider>
+      <TimerProvider>
       <AppWindow>
         <ViewRouter />
       </AppWindow>
+      </TimerProvider>
     </FocusProvider>
   );
 }

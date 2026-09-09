@@ -1,6 +1,17 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3001/api';
 
 export const apiService = {
+  async getActivityHistory(start, end, signal) {
+    const query = new URLSearchParams({ start, end });
+    const res = await fetch(`${API_BASE_URL}/analytics/history?${query}`, { signal });
+    if (!res.ok) throw new Error('Activity history is unavailable');
+    const data = await res.json();
+    if (!Array.isArray(data.microTasks) || !Array.isArray(data.timeBlocks)) {
+      throw new Error('Invalid activity history');
+    }
+    return data;
+  },
+
   // 1. HEALTH & HYDRATION
   async checkHealth() {
     try {
@@ -75,6 +86,7 @@ export const apiService = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(block)
       });
+      if (!res.ok) return null;
       return await res.json();
     } catch (e) { return null; }
   },
@@ -86,14 +98,16 @@ export const apiService = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
+      if (!res.ok) return null;
       return await res.json();
     } catch (e) { return null; }
   },
 
   async deleteTimeBlock(id) {
     try {
-      await fetch(`${API_BASE_URL}/time-blocks/${id}`, { method: 'DELETE' });
-    } catch (e) {}
+      const res = await fetch(`${API_BASE_URL}/time-blocks/${id}`, { method: 'DELETE' });
+      return res.ok;
+    } catch { return false; }
   },
 
   // 4. MICRO TASKS API (`/api/micro-tasks`)

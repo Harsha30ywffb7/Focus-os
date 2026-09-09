@@ -1,3 +1,4 @@
+import { dayKey } from '../lib/timer';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { apiService } from '../services/api';
@@ -10,9 +11,11 @@ const THEME_STORAGE_KEY = 'focus_os_theme';
 const defaultState = {
   theme: 'dark', // 'dark' | 'light'
   accentColor: 'indigo',
+  isDateLoading: false,
+  dateError: false,
   activeView: 'today', // 'today' | 'calendar' | 'goals' | 'vision' | 'analytics' | 'settings'
-  isSidebarOpen: true,
-  selectedDate: new Date().toISOString().split('T')[0],
+  isSidebarOpen: typeof window === 'undefined' || window.innerWidth >= 768,
+  selectedDate: dayKey(),
 
   // Today View Data
   dailyIntention: 'Lead with clarity, execute high-impact priorities, and maintain physical balance.',
@@ -42,26 +45,31 @@ export const FocusProvider = ({ children }) => {
     }
     return {
       ...defaultState,
+      isDateLoading: true,
       theme: savedTheme,
-      selectedDate: new Date().toISOString().split('T')[0]
+      selectedDate: dayKey()
     };
   });
 
   // Hydrate real state from Bun backend API on mount
   useEffect(() => {
     async function loadBackendData() {
-      const todayDate = state.selectedDate || new Date().toISOString().split('T')[0];
+      const todayDate = state.selectedDate || dayKey();
       const remoteData = await apiService.fetchState(todayDate);
       if (remoteData) {
         setState(prev => ({
           ...prev,
+          isDateLoading: prev.selectedDate === todayDate ? false : prev.isDateLoading,
+          dateError: prev.selectedDate === todayDate ? false : prev.dateError,
           goals: remoteData.goals || [],
           habits: remoteData.habits || [],
-          microTasks: remoteData.microTasks || [],
-          timeBlocks: remoteData.timeBlocks || [],
+          microTasks: prev.selectedDate === todayDate ? remoteData.microTasks || [] : prev.microTasks,
+          timeBlocks: prev.selectedDate === todayDate ? remoteData.timeBlocks || [] : prev.timeBlocks,
           pillars: remoteData.pillars || [],
           milestonesTimeline: remoteData.milestonesTimeline || []
         }));
+      } else {
+        setState(prev => prev.selectedDate === todayDate ? { ...prev, isDateLoading: false, dateError: true } : prev);
       }
     }
     loadBackendData();
@@ -112,15 +120,12 @@ export const FocusProvider = ({ children }) => {
   }));
 
   const changeSelectedDate = async (newDate) => {
-    setState(prev => ({ ...prev, selectedDate: newDate }));
-    const [blocks, tasks] = await Promise.all([
-      apiService.getTimeBlocks(newDate),
-      apiService.getMicroTasks(newDate)
-    ]);
-    setState(prev => ({
-      ...prev,
-      timeBlocks: Array.isArray(blocks) ? blocks : [],
-      microTasks: Array.isArray(tasks) ? tasks : []
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) return;
+    setState(prev => ({ ...prev, selectedDate: newDate, timeBlocks: [], microTasks: [], isDateLoading: true, dateError: false }));
+    const data = await apiService.fetchState(newDate);
+    setState(prev => prev.selectedDate !== newDate ? prev : ({
+      ...prev, isDateLoading: false, dateError: !data,
+      timeBlocks: data?.timeBlocks || [], microTasks: data?.microTasks || []
     }));
   };
 
@@ -162,46 +167,36 @@ export const FocusProvider = ({ children }) => {
   };
 
   // Time Block Actions
-  const addTimeBlock = (block) => {
-    const targetDate = block.date || state.selectedDate || new Date().toISOString().split('T')[0];
-    const newBlock = { ...block, id: 'tb_' + Date.now(), date: targetDate };
-    setState(prev => ({
-      ...prev,
-      timeBlocks: [...prev.timeBlocks, newBlock]
-    }));
-    apiService.addTimeBlock(newBlock);
+  const addTimeBlock = async (block) => {
+    const targetDate = block.date || state.selectedDate || dayKey();
+    const newBlock = { ...block, id: 'tb_' + crypto.randomUUID(), date: targetDate };
+    const saved = await apiService.addTimeBlock(newBlock);
+    if (!saved?.id) return false;
+    setState(prev => prev.selectedDate !== targetDate ? prev : ({ ...prev, timeBlocks: [...prev.timeBlocks, { ...newBlock, ...saved }] }));
+    return true;
   };
 
-  const updateTimeBlockStatus = (id, status) => {
-    if (status === 'completed') triggerConfetti();
-    setState(prev => ({
-      ...prev,
-      timeBlocks: prev.timeBlocks.map(tb => tb.id === id ? { ...tb, status } : tb)
-    }));
-    apiService.updateTimeBlock(id, { status });
-  };
-
-  const updateTimeBlock = (id, data) => {
+  const updateTimeBlock = async (id, data) => {
+    const saved = await apiService.updateTimeBlock(id, data);
+    if (!saved?.id) return false;
+    setState(prev => ({ ...prev, timeBlocks: prev.timeBlocks.map(tb => tb.id === id ? { ...tb, ...data, ...saved } : tb) }));
     if (data.status === 'completed') triggerConfetti();
-    setState(prev => ({
-      ...prev,
-      timeBlocks: prev.timeBlocks.map(tb => tb.id === id ? { ...tb, ...data } : tb)
-    }));
-    apiService.updateTimeBlock(id, data);
+    return true;
   };
 
-  const deleteTimeBlock = (id) => {
-    if (!window.confirm('Are you sure you want to delete this time block?')) return;
-    setState(prev => ({
-      ...prev,
-      timeBlocks: prev.timeBlocks.filter(tb => tb.id !== id)
-    }));
-    apiService.deleteTimeBlock(id);
+  const updateTimeBlockStatus = (id, status) => updateTimeBlock(id, { status });
+
+  const deleteTimeBlock = async (id) => {
+    if (!window.confirm('Delete this time block?')) return false;
+    const deleted = await apiService.deleteTimeBlock(id);
+    if (!deleted) return null;
+    setState(prev => ({ ...prev, timeBlocks: prev.timeBlocks.filter(tb => tb.id !== id) }));
+    return true;
   };
 
   // Micro Tasks
   const addMicroTask = (title, category = 'General', priority = 'medium', date = null) => {
-    const targetDate = date || state.selectedDate || new Date().toISOString().split('T')[0];
+    const targetDate = date || state.selectedDate || dayKey();
     const newTask = { id: 'm_' + Date.now(), title, category, priority, completed: false, date: targetDate };
     setState(prev => ({
       ...prev,
@@ -211,20 +206,12 @@ export const FocusProvider = ({ children }) => {
   };
 
   const toggleMicroTask = (id) => {
-    let isNowCompleted = false;
-    setState(prev => {
-      const updated = prev.microTasks.map(m => {
-        if (m.id === id) {
-          const next = !m.completed;
-          isNowCompleted = next;
-          if (next) triggerConfetti();
-          return { ...m, completed: next };
-        }
-        return m;
-      });
-      return { ...prev, microTasks: updated };
-    });
-    apiService.updateMicroTask(id, { completed: isNowCompleted });
+    const task = state.microTasks.find(item => item.id === id);
+    if (!task) return;
+    const completed = !task.completed;
+    setState(prev => ({ ...prev, microTasks: prev.microTasks.map(item => item.id === id ? { ...item, completed } : item) }));
+    if (completed) triggerConfetti();
+    apiService.updateMicroTask(id, { completed });
   };
 
   const deleteMicroTask = (id) => {

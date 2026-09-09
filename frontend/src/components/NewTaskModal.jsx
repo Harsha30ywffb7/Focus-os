@@ -4,6 +4,8 @@ import { Plus, X } from 'lucide-react';
 
 export const NewTaskModal = ({ isOpen, onClose }) => {
   const { addGoal, addTimeBlock, addMicroTask, triggerConfetti } = useFocus();
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const [type, setType] = useState('micro');
   
   const [microTitle, setMicroTitle] = useState('');
@@ -22,21 +24,25 @@ export const NewTaskModal = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     if (type === 'micro') {
       if (!microTitle.trim()) return;
       addMicroTask(microTitle, microCategory, microPriority);
       setMicroTitle('');
     } else if (type === 'timeblock') {
       if (!blockTitle.trim()) return;
-      addTimeBlock({
+      setSaving(true);
+      const saved = await addTimeBlock({
         timeSlot: blockTime,
         durationMinutes: parseInt(blockDuration),
         title: blockTitle,
         status: 'upcoming',
         category: blockCategory
       });
+      setSaving(false);
+      if (!saved) { setError('Couldn’t save this block. Please try again.'); return; }
       setBlockTitle('');
     } else if (type === 'goal') {
       if (!goalTitle.trim()) return;
@@ -248,12 +254,13 @@ export const NewTaskModal = ({ isOpen, onClose }) => {
             </>
           )}
 
+          {error && <p role="alert" className="schedule-error">{error}</p>}
           <div className="pt-4 flex justify-end space-x-3 border-t border-[var(--fs-color-surface-glass-border)]">
             <button type="button" onClick={onClose} className="btn-ghost">
               Cancel
             </button>
-            <button type="submit" className="btn-primary">
-              Add Item
+            <button type="submit" disabled={saving} className="btn-primary">
+              {saving ? 'Saving…' : 'Add item'}
             </button>
           </div>
         </form>
