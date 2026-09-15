@@ -19,6 +19,7 @@ export const Sidebar = () => {
   const navItems = [
     { id: 'today', label: 'Today', icon: Sun, badge: state.microTasks.filter(m => !m.completed).length },
     { id: 'focus', label: 'Focus Timer', icon: Timer },
+    { id: 'career', label: 'Career Prep', icon: TrendingUp },
     { id: 'calendar', label: 'Calendar', icon: Calendar, badge: state.timeBlocks.length },
     { id: 'goals', label: 'Short-Term Goals', icon: Target, badge: state.goals.filter(g => g.column !== 'complete').length },
     { id: 'vision', label: 'Vision Wall', icon: Compass },

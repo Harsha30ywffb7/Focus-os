@@ -8,11 +8,14 @@ import { GoalsView } from './views/GoalsView';
 import { CalendarView } from './views/CalendarView';
 import { AnalyticsView } from './views/AnalyticsView';
 import { SettingsView } from './views/SettingsView';
+import { CareerView } from './views/CareerView';
 
 const ViewRouter = () => {
   const { state } = useFocus();
 
   switch (state.activeView) {
+    case 'career':
+      return <CareerView />;
     case 'focus':
       return <FocusView />;
     case 'today':

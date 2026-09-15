@@ -18,6 +18,7 @@ export function CommandPalette({ isOpen, onClose }) {
   const actions = [
     { id: 'today', title: 'Today', category: 'Navigate', icon: Sun, action: go('today') },
     { id: 'focus', title: 'Focus timer', category: 'Navigate', icon: Timer, action: go('focus') },
+    { id: 'career', title: 'Career Prep · HFT & SDE roadmap', category: 'Navigate', icon: Target, action: go('career') },
     { id: 'calendar', title: 'Calendar', category: 'Navigate', icon: Calendar, action: go('calendar') },
     { id: 'goals', title: 'Goals', category: 'Navigate', icon: Target, action: go('goals') },
     { id: 'vision', title: 'Vision wall', category: 'Navigate', icon: Compass, action: go('vision') },

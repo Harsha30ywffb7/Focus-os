@@ -41,7 +41,7 @@ export const AppWindow = ({ children }) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const viewName = { today: 'Today', focus: 'Focus', calendar: 'Calendar', goals: 'Goals', vision: 'Vision', analytics: 'Analytics', settings: 'Settings' }[state.activeView];
+  const viewName = { today: 'Today', career: 'Career Prep', focus: 'Focus', calendar: 'Calendar', goals: 'Goals', vision: 'Vision', analytics: 'Analytics', settings: 'Settings' }[state.activeView];
   const shortcut = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl';
 
   return (

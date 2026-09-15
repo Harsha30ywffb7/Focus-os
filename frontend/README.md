@@ -1,5 +1,26 @@
 # React + Vite
 
+### Personal career preparation
+
+Open **Career Prep** from the sidebar or command search for the M.Tech 2028 /
+summer 2027 HFT engineering and SDE plan. The default class week is Monday–Friday,
+09:30–16:30, with Monday ending at 17:30. The schedule protects 8+ hours of sleep,
+academic buffers, and a requested intensive target of 5 hours per weekday and
+9 hours per free weekend day (43 hours weekly). Monday has tight buffers and only
+45 minutes for coursework. A lighter schedule remains available. Read [the complete plan](../CAREER_PLAN_2027.md).
+
+The view provides dated check-ins, intensive/lighter/minimum/rest modes, a milestone
+roadmap, a Codeforces/LeetCode contest and upsolving journal, and editable internship records with eligibility, deadlines, next action
+dates, statuses, links, and notes. It does not submit applications, register contests, sync live event times, or send reminders.
+Contest conflict checks flag classes and 22:00–06:00 sleep using entered IST times.
+Contests replace equivalent preparation blocks; timetable swaps are manual.
+Preparation data uses `focus_os_career_v1` in browser local storage, independently
+of the backend and other planner views. Use one tab; export regular JSON backups.
+Restore validates and previews a backup before explicit replacement. Allocated
+schedule hours are not measured focus time; use Focus Timer for actual sessions.
+
+Career logic checks: `node --test src/lib/career.test.js`.
+
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
 Currently, two official plugins are available:
